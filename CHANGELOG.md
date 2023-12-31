@@ -1,4 +1,14 @@
-## [1.0.0] - 31-12-2023
+## [1.1] - 31/12/2023
+### Añadido
+- Sección de opciones de escenaeo de servicios y versiones añadida
+- Opción de introducir un rango de ip's
+- Validación para la entrada ip, rango de ip's y red mediante código de color: fondo verde datos válidos y rojo erróneos
+- Ahora si se marca el checkbox -A se deshabilita -O y viceversa por ser redundantes
+- Añadido menú elemental del programa con opción de salir (funcional), modo oscuro, modo claro e información sobre el autor (aun no funcionales)
+
+
+
+## [1.0] - 31/12/2023
 ### Añadido
 - Lanzamiento inicial del proyecto.
 - Función introducir ip o red
@@ -9,3 +19,4 @@
 - Botón de copiar consulta al portapaples funcional
 - Botón de limpiar consulta para empezar a crearla de nuevo funcional
 - Otras implementaciones gráficas aun no funcionales
+- Usable con limitaciones a causa de no estar implementadas aun todas las opciones habituales

@@ -1,8 +1,61 @@
 import tkinter as tk
 import pyperclip
-from tkinter import ttk
+from tkinter import ttk, Menu
+import ipaddress
 
-valor_actual_intensidad_sv = None
+# Funciones para las opciones del menú
+def salir():
+    ventana_principal.destroy()
+
+def modo_oscuro():
+    # Implementa la funcionalidad del modo oscuro
+    pass
+
+def modo_claro():
+    # Implementa la funcionalidad del modo claro
+    pass
+
+def es_rango_ip_valido(rango_ip):
+    try:
+        ip_inicio, ip_fin = rango_ip.split('-')
+        ipaddress.ip_address(ip_inicio)  # Verifica si la primera parte es una IP válida
+
+        ip_fin = int(ip_fin)  # Verifica si la segunda parte es un número entero
+        if ip_fin < 0 or ip_fin > 255:
+            return False
+    except (ValueError, TypeError):
+        return False
+
+    return True
+
+
+def es_direccion_o_red_valida(direccion):
+    try:
+        # Intenta interpretar la entrada como una dirección IP
+        ipaddress.ip_address(direccion)
+        return True
+
+    except ValueError:
+        try:
+            # Si falla, intenta interpretar la entrada como una red
+            ipaddress.ip_network(direccion, strict=False)
+            return True
+        except ValueError:
+            return es_rango_ip_valido(direccion)
+
+def manejar_incompatibilidad_A_O():
+    if var_A.get() == 1:
+        check_O.config(state=tk.DISABLED)
+        var_O.set(0)
+    else:
+        check_O.config(state=tk.NORMAL)
+
+    if var_O.get() == 1:
+        check_A.config(state=tk.DISABLED)
+        var_A.set(0)
+    else:
+        check_A.config(state=tk.NORMAL)
+
 
 # Función para actualizar la consulta de Nmap
 def actualizar_consulta_nmap(*args):
@@ -10,10 +63,18 @@ def actualizar_consulta_nmap(*args):
     cuadro_texto_consulta_generada.delete('1.0', tk.END)
 
     ip_valor = entrada_texto_ip.get()
+
+    if es_direccion_o_red_valida(ip_valor):
+        entrada_texto_ip.config(bg='#009933')  # Fondo verde para entrada válida
+        # Continuar con la actualización de la consulta si la entrada es válida
+
+    else:
+        entrada_texto_ip.config(bg='#ff4d4d')  # Fondo rojo para entrada inválida
+    
+    # Variables para los comandos
+    ip_valor = entrada_texto_ip.get()
     descubrimiento_red = opcion_seleccionada_descubrimiento_red.get()
     tecnicas_escaneo = opcion_seleccionada_tecnica_escaneo.get()
-    opcion_sV = var_sv.get()
-
 
     consulta = "nmap"  # Texto base
 
@@ -23,13 +84,17 @@ def actualizar_consulta_nmap(*args):
     if tecnicas_escaneo != "None":
         consulta += f" {tecnicas_escaneo}"
 
-    if opcion_sV == "-sV":
+    # Verificar el estado de cada Checkbutton y añadir a la consulta
+    if var_sV.get() == 1:
         consulta += " -sV"
-        if valor_actual_intensidad_sv is not None:
-            consulta += f" --version-intensity {valor_actual_intensidad_sv}"
-    else:
-        sv_intensity.set(-1)
-
+    if var_A.get() == 1:
+        consulta += " -A"
+    if var_O.get() == 1:
+        consulta += " -O"
+    if var_f.get() == 1:
+        consulta += " -f"
+    if var_T.get() == 1:
+        consulta += " -T"
 
     consulta += f" {ip_valor}"
 
@@ -49,6 +114,13 @@ def limpiar_texto_consulta():
     opcion_seleccionada_descubrimiento_red.set(None)
     opcion_seleccionada_tecnica_escaneo.set(None)
     entrada_texto_ip.delete("0", "end")
+    entrada_texto_ip.config(bg="white")
+    var_sV.set(0)
+    var_A.set(0)
+    var_O.set(0)
+    var_f.set(0)
+    var_T.set(0)
+
 
 
 # ventana principal
@@ -56,11 +128,34 @@ ventana_principal = tk.Tk()
 ventana_principal.title("Generador de consultas Nmap")
 ventana_principal.geometry("1500x600")
 ventana_principal.minsize(1600, 650)
+
+# Crear un objeto menú
+menu_bar = Menu(ventana_principal)
+
+# Crear el menú Archivo y añadir comandos
+menu_archivo = Menu(menu_bar, tearoff=0)
+menu_archivo.add_command(label="Salir", command=salir)
+menu_bar.add_cascade(label="Archivo", menu=menu_archivo)
+
+# Crear el menú Ver y añadir comandos
+menu_ver = Menu(menu_bar, tearoff=0)
+menu_ver.add_command(label="Modo Oscuro", command=modo_oscuro)
+menu_ver.add_command(label="Modo Claro", command=modo_claro)
+menu_bar.add_cascade(label="Ver", menu=menu_ver)
+
+# Crear el menú Ayuda y añadir comandos
+menu_ayuda = Menu(menu_bar, tearoff=0)
+menu_ayuda.add_command(label="Sobre el autor")
+menu_bar.add_cascade(label="Ayuda", menu=menu_ayuda)
+
+# Configurar la ventana para usar este menú
+ventana_principal.config(menu=menu_bar)
+
 # Obtener dimensiones de la pantalla
 ancho_pantalla = ventana_principal.winfo_screenwidth()
 alto_pantalla = ventana_principal.winfo_screenheight()
-# Posicionar la ventana en la pantalla secundaria (si existe)
-    # Esto asume que la segunda pantalla está a la derecha de la principal
+
+# Posicionar la ventana
 ventana_principal.geometry(f"+{ancho_pantalla}+0")
 
 
@@ -118,13 +213,13 @@ marco_izquierdo = tk.Frame(ventana_principal)
 marco_izquierdo.pack(side=tk.LEFT, fill=tk.BOTH)
 
 # etiqueta entrada ip o red
-etiqueta_casilla_ip = tk.Label(marco_izquierdo, text="Introduce IP o red")
+etiqueta_casilla_ip = tk.Label(marco_izquierdo, text="Introduce IP, rango o red")
 etiqueta_casilla_ip.pack()
 
 # Casilla de entrada para introducir IP o red
-entrada_texto_ip = tk.Entry(marco_izquierdo, width=40)
+entrada_texto_ip = tk.Entry(marco_izquierdo, width=40, fg="white")
 entrada_texto_ip.pack()
-entrada_texto_ip.bind('<KeyRelease>', lambda event: (actualizar_consulta_nmap()))
+entrada_texto_ip.bind('<KeyRelease>', lambda event: actualizar_consulta_nmap())
 
 # Sección consulta generada
 seccion_consulta_generada = tk.LabelFrame(marco_izquierdo, text="Consulta generada para Nmap")
@@ -264,66 +359,62 @@ opcion_seleccionada_tecnica_escaneo.set(None)
 # Sección servicios y versiones
 # Diccionario con opciones y descripciones
 opciones_servicios_y_versiones = {
-    "-sV": "nivel de intensidad:",
+    "-sV": "nivel de intensidad",
     "-A": "activar detección de sistema operativo y versión de servicios",
     "-O": "activar detección de sistema operativo",
     "-f": "utilizar técnicas de fragmentación",
     "-T": "Timing (velocidad del escaneo)"
 }
 
-for opcion_servicio_y_version, descripcion_servicio_y_version in opciones_servicios_y_versiones.items():
-    contenedor_servicio_y_version = tk.Frame(tab_opciones_servicios_y_version, padx=3, pady=3)
-    contenedor_servicio_y_version.pack(anchor=tk.W)
+contenedor_servicios_y_versiones = tk.Frame(tab_opciones_servicios_y_version, padx=3, pady=3)
+contenedor_servicios_y_versiones.pack(anchor=tk.W)
 
-    if opcion_servicio_y_version == "-sV":
-        var_sv = tk.StringVar(value=0)  # Variable de control para -sV
-        sv_check = tk.Checkbutton(contenedor_servicio_y_version, text=opcion_servicio_y_version, variable=var_sv, onvalue="-sV", offvalue="", command=actualizar_consulta_nmap)
-        sv_check.pack(side=tk.LEFT)
+# Variable de control para cada Checkbutton
+var_sV = tk.IntVar(value=0)
+var_A = tk.IntVar(value=0)
+var_O = tk.IntVar(value=0)
+var_f = tk.IntVar(value=0)
+var_T = tk.IntVar(value=0)
 
-        sv_label = tk.Label(contenedor_servicio_y_version, text=f"--> {descripcion_servicio_y_version}")
-        sv_label.pack(side=tk.LEFT)
+# Crear Checkbutton y Label para -sV
+contenedor_sV = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
+contenedor_sV.pack(fill=tk.X)
+check_sV = tk.Checkbutton(contenedor_sV, text="-sV", variable=var_sV, command=actualizar_consulta_nmap)
+check_sV.pack(side=tk.LEFT)
+label_sV = tk.Label(contenedor_sV, text=f"--> {opciones_servicios_y_versiones['-sV']}")
+label_sV.pack(side=tk.LEFT)
 
-        valor_intensidad_sv = tk.Label(contenedor_servicio_y_version, text="0")
-        valor_intensidad_sv.pack(side=tk.RIGHT)
+# Crear Checkbutton y Label para -A
+contenedor_A = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
+contenedor_A.pack(fill=tk.X)
+check_A = tk.Checkbutton(contenedor_A, text="-A", variable=var_A, command=lambda: [manejar_incompatibilidad_A_O(), actualizar_consulta_nmap()])
+check_A.pack(side=tk.LEFT)
+label_A = tk.Label(contenedor_A, text=f"--> {opciones_servicios_y_versiones['-A']}")
+label_A.pack(side=tk.LEFT)
 
+# Crear Checkbutton y Label para -O
+contenedor_O = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
+contenedor_O.pack(fill=tk.X)
+check_O = tk.Checkbutton(contenedor_O, text="-O", variable=var_O, command=lambda: [manejar_incompatibilidad_A_O(), actualizar_consulta_nmap()])
+check_O.pack(side=tk.LEFT)
+label_O = tk.Label(contenedor_O, text=f"--> {opciones_servicios_y_versiones['-O']}")
+label_O.pack(side=tk.LEFT)
 
-        def actualizar_intensidad_sv(value):
-            global valor_actual_intensidad_sv
-            if int(value) == -1:
-                valor_actual_intensidad_sv = None  # Estado de reposo
-            else:
-                valor_actual_intensidad_sv = int(value)  # Valor seleccionado
-            valor_intensidad_sv.config(text=str(value))
-            actualizar_consulta_nmap()
+# Crear Checkbutton y Label para -f
+contenedor_f = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
+contenedor_f.pack(fill=tk.X)
+check_f = tk.Checkbutton(contenedor_f, text="-f", variable=var_f, command=actualizar_consulta_nmap)
+check_f.pack(side=tk.LEFT)
+label_f = tk.Label(contenedor_f, text=f"--> {opciones_servicios_y_versiones['-f']}")
+label_f.pack(side=tk.LEFT)
 
-        sv_intensity = tk.Scale(contenedor_servicio_y_version, from_=0, to=9, showvalue=False, orient=tk.HORIZONTAL, command=actualizar_intensidad_sv)
-        sv_intensity.set(-1)
-        sv_intensity.pack(side=tk.LEFT, padx=10)
-
-    elif opcion_servicio_y_version == "-T":
-        var_timing = tk.IntVar()  # Variable de control para -T
-        timing_check = tk.Checkbutton(contenedor_servicio_y_version, text=opcion_servicio_y_version, variable=var_timing)
-        timing_check.pack(side=tk.LEFT)
-
-        timing_label = tk.Label(contenedor_servicio_y_version, text=f"--> {descripcion_servicio_y_version}")
-        timing_label.pack(side=tk.LEFT)
-
-        valor_tiempo = tk.Label(contenedor_servicio_y_version, text="0")
-        valor_tiempo.pack(side=tk.RIGHT)
-
-        def update_valor_tiempo(value):
-            valor_tiempo.config(text=str(value))
-
-        escala_tiempo = tk.Scale(contenedor_servicio_y_version, from_=0, to=5, orient=tk.HORIZONTAL, showvalue=False, command=update_valor_tiempo)
-        escala_tiempo.pack(side=tk.LEFT, padx=10)
-
-    else:
-        var = tk.IntVar()  # Variable de control para otras opciones
-        cb = tk.Checkbutton(contenedor_servicio_y_version, text=opcion_servicio_y_version, variable=var)
-        cb.pack(side=tk.LEFT)
-
-        desc_label = tk.Label(contenedor_servicio_y_version, text=f"--> {descripcion_servicio_y_version}")
-        desc_label.pack(side=tk.LEFT)
+# Crear Checkbutton y Label para -T
+contenedor_T = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
+contenedor_T.pack(fill=tk.X)
+check_T = tk.Checkbutton(contenedor_T, text="-T", variable=var_T, command=actualizar_consulta_nmap)
+check_T.pack(side=tk.LEFT)
+label_T = tk.Label(contenedor_T, text=f"--> {opciones_servicios_y_versiones['-T']}")
+label_T.pack(side=tk.LEFT)
 
 
 
