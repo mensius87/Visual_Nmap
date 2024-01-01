@@ -1,19 +1,116 @@
 import tkinter as tk
-import pyperclip
-from tkinter import ttk, Menu
-import ipaddress
+from tkinter import ttk, Menu, messagebox
+import os, sys, json, ipaddress, pyperclip
+
+def mostrar_sobre_el_autor():
+    ventana_sobre_autor = tk.Toplevel()
+    ventana_sobre_autor.title("Sobre el Autor")
+    ventana_sobre_autor.geometry("600x270")  # Ajusta el tamaño según tus necesidades
+
+    def abrir_enlace():
+        import webbrowser
+        webbrowser.open("https://github.com/mensius87")
+
+    enlace_label = tk.Label(ventana_sobre_autor, text="Programa desarrolado por mensius87. Licencia MIT. Mis proyectos:")
+    enlace_label.pack()
+
+    # Crear un label con el enlace
+    enlace_label = tk.Label(ventana_sobre_autor, pady=10, text="https://github.com/mensius87", fg="blue", cursor="hand2")
+    enlace_label.pack()
+
+    # Asociar la función abrir_enlace al clic en el label
+    enlace_label.bind("<Button-1>", lambda event: abrir_enlace())
+
+    # Cargar y mostrar la imagen del banner
+    ruta_imagen_banner = "images/banner_autor.png"  # Cambia esto por la ruta a tu imagen
+    imagen_banner = tk.PhotoImage(file=ruta_imagen_banner)
+    label_imagen_banner = tk.Label(ventana_sobre_autor, image=imagen_banner)
+    label_imagen_banner.image = imagen_banner  # Guarda una referencia de la imagen
+    label_imagen_banner.pack()
+
+
 
 # Funciones para las opciones del menú
 def salir():
     ventana_principal.destroy()
 
+# Colores para el modo oscuro
+colores_modo_oscuro = {
+    "fondo": "#333333",  # Color de fondo oscuro
+    "texto": "#FFFFFF",  # Color de texto claro
+}
+
 def modo_oscuro():
-    # Implementa la funcionalidad del modo oscuro
-    pass
+    # Establecer el fondo de la ventana principal y los frames
+    ventana_principal.config(bg=colores_modo_oscuro["fondo"])
+    marco_derecho.config(bg=colores_modo_oscuro["fondo"])
+    marco_izquierdo.config(bg=colores_modo_oscuro["fondo"])
+    marco_entrada_texto_nombre_salida_archivo.config(bg="#dcdad5")
+
+    seccion_resultado_consulta.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
+    seccion_exportar_resultados.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
+    seccion_consulta_generada.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
+    seccion_encabezado_opciones_avanzadas.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
+
+    contenedor_general_consulta_generada.config(bg="#dcdad5")
+    contenedor_botones.config(bg="#dcdad5")
+    contenedor_A.config(bg="#dcdad5")
+    contenedor_f.config(bg="#dcdad5")
+    contenedor_O.config(bg="#dcdad5")
+    contenedor_sV.config(bg="#dcdad5")
+    contenedor_T.config(bg="#dcdad5")
+    contenedor_checkbuttons_exportar_resultados.config(bg="#dcdad5")
+    contenedor_principal_exportar.config(bg="#dcdad5")
+
+    check_normal.config(bg="#dcdad5")
+    check_todos_formatos.config(bg="#dcdad5")
+    check_grepable.config(bg="#dcdad5")
+    check_xml.config(bg="#dcdad5")
+
+    label_nombre_archivo.config(bg="#dcdad5")
+
+
+    # Cambiar el estilo de los widgets en cada pestaña
+    for tab in [tab_descubrimiento_red, tab_tecnica_escaneo, tab_opciones_servicios_y_version, tab_puertos]:
+        for widget in tab.winfo_children():
+            widget.config(bg="#dcdad5")
+            for child in widget.winfo_children():
+                if isinstance(child, (tk.Radiobutton, tk.Checkbutton, tk.Label)):
+                    child.config(bg="#dcdad5")
+
+    # Configurar el estilo para las pestañas del ttk.Notebook
+    style = ttk.Style()
+    style.theme_use('clam')  # Usar un tema que permita más personalización
+
+    # Configurar el estilo de las pestañas
+    style.configure('Custom.Tab', background=colores_modo_oscuro['fondo'], foreground=colores_modo_oscuro['texto'])
+
+    # Cambiar el estilo de los radiobuttons y checkbuttons
+    check_sV.config(bg="#dcdad5")
+    check_A.config(bg="#dcdad5")
+    check_T.config(bg="#dcdad5")
+    check_O.config(bg="#dcdad5")
+    check_f.config(bg="#dcdad5")
+
+    # Cambiar el estilo de las etiquetas
+    etiqueta_casilla_ip.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
+    label_nombre_archivo.config(bg="#dcdad5")
+    label_A.config(bg="#dcdad5")
+    label_f.config(bg="#dcdad5")
+    label_O.config(bg="#dcdad5")
+    label_sV.config(bg="#dcdad5")
+    label_T.config(bg="#dcdad5")
+
+
 
 def modo_claro():
-    # Implementa la funcionalidad del modo claro
-    pass
+    # Preguntar al usuario si realmente quiere reiniciar el programa
+    respuesta = messagebox.askyesno("Confirmar reinicio", "Para habilitar el modo claro se necesita reiniciar. Se perderá el progreso actual. ¿Deseas continuar con el reinicio?")
+    if respuesta:
+        # Si el usuario responde que sí, reinicia el programa
+        ventana_principal.destroy()
+        os.execl(sys.executable, sys.executable, *sys.argv)
+
 
 def es_rango_ip_valido(rango_ip):
     try:
@@ -62,6 +159,9 @@ def actualizar_consulta_nmap(*args):
     cuadro_texto_consulta_generada.config(state=tk.NORMAL)
     cuadro_texto_consulta_generada.delete('1.0', tk.END)
 
+    #print(opcion_seleccionada_puertos.get())
+    #print(entrada_puerto.get())
+
     ip_valor = entrada_texto_ip.get()
 
     if es_direccion_o_red_valida(ip_valor):
@@ -95,6 +195,17 @@ def actualizar_consulta_nmap(*args):
         consulta += " -f"
     if var_T.get() == 1:
         consulta += " -T"
+
+    # Añadir la opción de puertos
+    puerto_seleccionado = opcion_seleccionada_puertos.get()
+    if puerto_seleccionado == "-p" and entrada_puerto.get():
+        consulta += f" -p{entrada_puerto.get()}"
+    elif puerto_seleccionado == "-p rango" and (entrada_puerto_inicio.get() and entrada_puerto_fin.get()):
+        consulta += f" -p{entrada_puerto_inicio.get()}-{entrada_puerto_fin.get()}"
+    elif puerto_seleccionado == "-p-":
+        consulta += " -p-"
+    elif puerto_seleccionado == "-p específicos" and entrada_puertos_especificos.get():
+        consulta += f" -p{entrada_puertos_especificos.get()}"
 
     consulta += f" {ip_valor}"
 
@@ -145,11 +256,15 @@ menu_bar.add_cascade(label="Ver", menu=menu_ver)
 
 # Crear el menú Ayuda y añadir comandos
 menu_ayuda = Menu(menu_bar, tearoff=0)
-menu_ayuda.add_command(label="Sobre el autor")
+menu_ayuda.add_command(label="Sobre el autor", command=mostrar_sobre_el_autor)
 menu_bar.add_cascade(label="Ayuda", menu=menu_ayuda)
+
 
 # Configurar la ventana para usar este menú
 ventana_principal.config(menu=menu_bar)
+
+
+
 
 # Obtener dimensiones de la pantalla
 ancho_pantalla = ventana_principal.winfo_screenwidth()
@@ -164,21 +279,38 @@ ventana_principal.geometry(f"+{ancho_pantalla}+0")
 marco_derecho = tk.Frame(ventana_principal)
 marco_derecho.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
+# Configurar grid en marco_derecho
+marco_derecho.grid_columnconfigure(0, weight=1)
+marco_derecho.grid_rowconfigure(0, weight=1)  # Asignar más peso a la sección de resultados
+marco_derecho.grid_rowconfigure(1, weight=0)  # Menos peso a la sección de exportación
+
 # Sección resultado
 seccion_resultado_consulta = tk.LabelFrame(marco_derecho, padx=10, pady=10, text="Resultado de la consulta")
-seccion_resultado_consulta.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+seccion_resultado_consulta.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
 # Cuadro de texto para los resultados de nmap
 resultado_nmap = tk.Text(seccion_resultado_consulta, bg="black")
-resultado_nmap.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+resultado_nmap.pack(fill=tk.BOTH, expand=True)
 
 # Sección salida de resultados
 seccion_exportar_resultados = tk.LabelFrame(marco_derecho, padx=10, pady=10, text="Exportar resultado")
-seccion_exportar_resultados.pack(padx=10, pady=10, fill=tk.X)
+seccion_exportar_resultados.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
 
-# Marco para la entrada de texto y su label
-marco_entrada_texto_nombre_salida_archivo = tk.Frame(seccion_exportar_resultados)
-marco_entrada_texto_nombre_salida_archivo.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+
+# Configurar el grid de seccion_exportar_resultados para que expanda el contenedor principal solo horizontalmente
+seccion_exportar_resultados.grid_rowconfigure(0, weight=0)
+seccion_exportar_resultados.grid_columnconfigure(0, weight=1)
+
+# Frame principal para entrada de texto y checkbuttons
+contenedor_principal_exportar = tk.Frame(seccion_exportar_resultados)
+contenedor_principal_exportar.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+
+# El resto del código para los checkbuttons y la entrada de texto permanece igual
+
+
+# Sub-Frame para la entrada de texto y su label
+marco_entrada_texto_nombre_salida_archivo = tk.Frame(contenedor_principal_exportar)
+marco_entrada_texto_nombre_salida_archivo.pack(side=tk.LEFT, padx=5, pady=5)
 
 label_nombre_archivo = tk.Label(marco_entrada_texto_nombre_salida_archivo, text="Nombre de archivo")
 label_nombre_archivo.pack()
@@ -186,24 +318,22 @@ label_nombre_archivo.pack()
 entrada_nombre_archivo = tk.Entry(marco_entrada_texto_nombre_salida_archivo)
 entrada_nombre_archivo.pack()
 
-# Marco para los checkbuttons
-marco_checkbuttons = tk.Frame(seccion_exportar_resultados)
-marco_checkbuttons.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+# Sub-Frame para los checkbuttons
+contenedor_checkbuttons_exportar_resultados = tk.Frame(contenedor_principal_exportar)
+contenedor_checkbuttons_exportar_resultados.pack(side=tk.LEFT, padx=5, pady=5)
 
 # Checkbuttons
-check_normal = tk.Checkbutton(marco_checkbuttons, text="Normal")
+check_normal = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="Normal")
 check_normal.grid(row=0, column=0, sticky="w")
 
-check_xml = tk.Checkbutton(marco_checkbuttons, text="-oX --> XML")
+check_xml = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oX --> XML")
 check_xml.grid(row=0, column=1, sticky="w")
 
-check_grepable = tk.Checkbutton(marco_checkbuttons, text="-oG --> Greppable")
+check_grepable = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oG --> Greppable")
 check_grepable.grid(row=1, column=0, sticky="w")
 
-check_todos_formatos = tk.Checkbutton(marco_checkbuttons, text="-oA --> Todos los formatos")
+check_todos_formatos = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oA --> Todos los formatos")
 check_todos_formatos.grid(row=1, column=1, sticky="w")
-
-
 
 
 
@@ -217,12 +347,12 @@ etiqueta_casilla_ip = tk.Label(marco_izquierdo, text="Introduce IP, rango o red"
 etiqueta_casilla_ip.pack()
 
 # Casilla de entrada para introducir IP o red
-entrada_texto_ip = tk.Entry(marco_izquierdo, width=40, fg="white")
+entrada_texto_ip = tk.Entry(marco_izquierdo, width=50, fg="white")
 entrada_texto_ip.pack()
 entrada_texto_ip.bind('<KeyRelease>', lambda event: actualizar_consulta_nmap())
 
 # Sección consulta generada
-seccion_consulta_generada = tk.LabelFrame(marco_izquierdo, text="Consulta generada para Nmap")
+seccion_consulta_generada = tk.LabelFrame(marco_izquierdo, text="Consulta generada para Nmap 7.94 ")
 seccion_consulta_generada.pack(padx=10, pady=10, fill=tk.BOTH)
 
 
@@ -316,13 +446,11 @@ for opcion_descubrimiento_red, descripcion_tipos_descubrimiento in opciones_desc
     radiobutton_opcion_descubrimiento_red = tk.Radiobutton(contenedor_opciones_descubrimiento_red, text=opcion_descubrimiento_red, variable=opcion_seleccionada_descubrimiento_red, value=opcion_descubrimiento_red, command=actualizar_consulta_nmap)
     radiobutton_opcion_descubrimiento_red.pack(side=tk.LEFT)
 
-    descripcion_tecnica_escaneo = tk.Label(contenedor_opciones_descubrimiento_red, text=f"--> {descripcion_tipos_descubrimiento}", anchor="w", justify="left")
-    descripcion_tecnica_escaneo.pack(side=tk.LEFT, fill="x")
+    descripcion_descubrimiento_red = tk.Label(contenedor_opciones_descubrimiento_red, text=f"--> {descripcion_tipos_descubrimiento}", anchor="w", justify="left")
+    descripcion_descubrimiento_red.pack(side=tk.LEFT, fill="x")
 
 # Asociar None como valor inicial para deseleccionar
 opcion_seleccionada_descubrimiento_red.set(None)
-
-
 
 
 # Sección ténicas de escaneo
@@ -415,6 +543,72 @@ check_T = tk.Checkbutton(contenedor_T, text="-T", variable=var_T, command=actual
 check_T.pack(side=tk.LEFT)
 label_T = tk.Label(contenedor_T, text=f"--> {opciones_servicios_y_versiones['-T']}")
 label_T.pack(side=tk.LEFT)
+
+
+# Sección Puertos
+# Diccionario con las opciones y descripciones
+port_options = {
+    "-p": "Puerto único:",
+    "-p rango": "Rango de puertos:",
+    "-p-": "Todos los puertos",
+    "-p específicos": "Puertos específicos separados por comas:"
+}
+
+# Variable para guardar la opción seleccionada en la pestaña de Puertos
+opcion_seleccionada_puertos = tk.StringVar(value="")
+
+# Sección Puertos
+def actualizar_puertos(*args):
+
+    if opcion_seleccionada_puertos.get() == "-p":
+        consulta = opcion_seleccionada_puertos.get() + " " + entrada_puerto.get()
+        entrada_puerto.bind('<KeyRelease>', actualizar_consulta_nmap())
+        actualizar_consulta_nmap()
+        print(consulta)
+
+
+    elif opcion_seleccionada_puertos.get() == "-p rango":
+        actualizar_consulta_nmap()
+        seleccion_puerto = entrada_puerto_inicio.bind('<KeyRelease>', lambda event: actualizar_consulta_nmap())
+
+
+
+# Crear botones radiales y entradas de texto para puertos
+for clave, descripcion in port_options.items():
+    contenedor_puertos = tk.Frame(tab_puertos, padx=3, pady=3)
+    contenedor_puertos.pack(anchor=tk.W)
+
+    # Vincular cada Radiobutton a la función actualizar_consulta_nmap
+    rb = tk.Radiobutton(contenedor_puertos, text=descripcion, variable=opcion_seleccionada_puertos, value=clave, command=actualizar_consulta_nmap)
+    rb.pack(side=tk.LEFT)
+
+    if clave == "-p":
+        entrada_puerto = tk.Entry(contenedor_puertos, width=10)
+        entrada_puerto.pack(side=tk.LEFT)
+        entrada_puerto.bind('<KeyRelease>', actualizar_consulta_nmap)
+
+    elif clave == "-p rango":
+        entrada_puerto_inicio = tk.Entry(contenedor_puertos, width=5)
+        entrada_puerto_inicio.pack(side=tk.LEFT)
+        entrada_puerto_inicio.bind('<KeyRelease>', actualizar_consulta_nmap)
+
+        tk.Label(contenedor_puertos, text="-").pack(side=tk.LEFT)
+
+        entrada_puerto_fin = tk.Entry(contenedor_puertos, width=5)
+        entrada_puerto_fin.pack(side=tk.LEFT)
+        entrada_puerto_fin.bind('<KeyRelease>', actualizar_consulta_nmap)
+
+    elif clave == "-p específicos":
+        entrada_puertos_especificos = tk.Entry(contenedor_puertos, width=30)
+        entrada_puertos_especificos.pack(side=tk.LEFT)
+        entrada_puertos_especificos.bind('<KeyRelease>', actualizar_consulta_nmap)
+
+opcion_seleccionada_puertos.set(None)  # Establecer una opción por defecto
+
+# La función actualizar_puertos deberá ser implementada para actualizar la consulta de Nmap según la opción seleccionada
+
+
+
 
 
 

@@ -1,6 +1,14 @@
+## [1.2] - 01/01/2024
+### Añadido
+- Modo oscuro
+- Sección de opciones para especificar puertos o rangos de puertos
+- Añadida versión de Nmap sobre la que trabaja el programa en el título de la sección de la consulta generada
+- Información sobre el autor
+
+
 ## [1.1] - 31/12/2023
 ### Añadido
-- Sección de opciones de escenaeo de servicios y versiones añadida
+- Sección de opciones de escaneo de servicios y versiones añadida
 - Opción de introducir un rango de ip's
 - Validación para la entrada ip, rango de ip's y red mediante código de color: fondo verde datos válidos y rojo erróneos
 - Ahora si se marca el checkbox -A se deshabilita -O y viceversa por ser redundantes
