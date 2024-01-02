@@ -1,5 +1,11 @@
 # Generador de Consultas Nmap con Interfaz Gráfica :computer:
-<br><br>
+<br>
+
+<p align="center">
+  <img src="images/Visual_Nmap_icono.ico" alt="Ejemplo de imagen">
+</p><br>
+
+
 
 ## :construction: Este proyecto está actualmente en construcción. :construction:
 Puede que algunas funcionalidades no estén completas o sufran cambios.

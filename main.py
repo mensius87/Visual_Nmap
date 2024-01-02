@@ -1,33 +1,42 @@
 import tkinter as tk
-from tkinter import ttk, Menu, messagebox
+from tkinter import ttk, Menu, messagebox, font
 import os, sys, json, ipaddress, pyperclip
 
+
 def mostrar_sobre_el_autor():
-    ventana_sobre_autor = tk.Toplevel()
+    ventana_sobre_autor = tk.Toplevel(pady=10)
     ventana_sobre_autor.title("Sobre el Autor")
-    ventana_sobre_autor.geometry("600x270")  # Ajusta el tamaño según tus necesidades
+    ventana_sobre_autor.geometry("550x375")  # Ajusta el tamaño según tus necesidades
+    ventana_sobre_autor.config(bg="#333333")
 
     def abrir_enlace():
         import webbrowser
         webbrowser.open("https://github.com/mensius87")
 
-    enlace_label = tk.Label(ventana_sobre_autor, text="Programa desarrolado por mensius87. Licencia MIT. Mis proyectos:")
+    # Cargar y mostrar la imagen del icono
+    ruta_imagen_icono = "images/Visual_Nmap_icono.png"
+    imagen_icono = tk.PhotoImage(file=ruta_imagen_icono)
+    label_imagen_icono = tk.Label(ventana_sobre_autor, image=imagen_icono, bg="#333333")
+    label_imagen_icono.image = imagen_icono  # Guarda una referencia de la imagen
+    label_imagen_icono.pack()
+
+    fuente_grande = font.Font(family="Helvetica", size=14)
+    enlace_label = tk.Label(ventana_sobre_autor, text="Programa desarrolado por mensius87. Licencia MIT. Mis proyectos:" , bg="#333333", fg="white")
     enlace_label.pack()
 
     # Crear un label con el enlace
-    enlace_label = tk.Label(ventana_sobre_autor, pady=10, text="https://github.com/mensius87", fg="blue", cursor="hand2")
+    enlace_label = tk.Label(ventana_sobre_autor, text="https://github.com/mensius87", fg="blue", cursor="hand2", bg="#333333", font=fuente_grande)
     enlace_label.pack()
 
     # Asociar la función abrir_enlace al clic en el label
     enlace_label.bind("<Button-1>", lambda event: abrir_enlace())
 
     # Cargar y mostrar la imagen del banner
-    ruta_imagen_banner = "images/banner_autor.png"  # Cambia esto por la ruta a tu imagen
+    ruta_imagen_banner = "images/banner_autor.png"
     imagen_banner = tk.PhotoImage(file=ruta_imagen_banner)
-    label_imagen_banner = tk.Label(ventana_sobre_autor, image=imagen_banner)
+    label_imagen_banner = tk.Label(ventana_sobre_autor, image=imagen_banner, bg="#333333")
     label_imagen_banner.image = imagen_banner  # Guarda una referencia de la imagen
     label_imagen_banner.pack()
-
 
 
 # Funciones para las opciones del menú
@@ -46,6 +55,10 @@ def modo_oscuro():
     marco_derecho.config(bg=colores_modo_oscuro["fondo"])
     marco_izquierdo.config(bg=colores_modo_oscuro["fondo"])
     marco_entrada_texto_nombre_salida_archivo.config(bg="#dcdad5")
+    menu_bar.config(bg="#dcdad5")
+    menu_archivo.config(bg="#dcdad5")
+    menu_ver.config(bg="#dcdad5")
+    menu_ayuda.config(bg="#dcdad5")
 
     seccion_resultado_consulta.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
     seccion_exportar_resultados.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
@@ -102,7 +115,6 @@ def modo_oscuro():
     label_T.config(bg="#dcdad5")
 
 
-
 def modo_claro():
     # Preguntar al usuario si realmente quiere reiniciar el programa
     respuesta = messagebox.askyesno("Confirmar reinicio", "Para habilitar el modo claro se necesita reiniciar. Se perderá el progreso actual. ¿Deseas continuar con el reinicio?")
@@ -153,6 +165,28 @@ def manejar_incompatibilidad_A_O():
     else:
         check_A.config(state=tk.NORMAL)
 
+def manejar_estado_nivel_intensidad():
+    global sV_escala_usada
+    # Habilitar o deshabilitar el Scale basado en el estado del Checkbutton -sV
+    if var_sV.get() == 1:
+        scale_nivel_intensidad.config(state=tk.NORMAL)
+    else:
+        scale_nivel_intensidad.config(state=tk.DISABLED)
+        sV_escala_usada = False  # Restablecer la bandera a False
+
+
+sV_escala_usada = False
+
+def on_scale_movido(val):
+    global sV_escala_usada
+    if not sV_escala_usada:
+        sV_escala_usada = True
+    if var_sV.get() == 0:
+        sV_escala_usada = False
+
+    actualizar_consulta_nmap()
+
+
 
 # Función para actualizar la consulta de Nmap
 def actualizar_consulta_nmap(*args):
@@ -185,8 +219,13 @@ def actualizar_consulta_nmap(*args):
         consulta += f" {tecnicas_escaneo}"
 
     # Verificar el estado de cada Checkbutton y añadir a la consulta
+    manejar_estado_nivel_intensidad()
+    nivel_instensidad_sV = var_nivel_intensidad.get()
+
     if var_sV.get() == 1:
         consulta += " -sV"
+        if sV_escala_usada == True:
+            consulta += f" --version-intensity {nivel_instensidad_sV}"
     if var_A.get() == 1:
         consulta += " -A"
     if var_O.get() == 1:
@@ -195,6 +234,7 @@ def actualizar_consulta_nmap(*args):
         consulta += " -f"
     if var_T.get() == 1:
         consulta += " -T"
+
 
     # Añadir la opción de puertos
     puerto_seleccionado = opcion_seleccionada_puertos.get()
@@ -205,7 +245,13 @@ def actualizar_consulta_nmap(*args):
     elif puerto_seleccionado == "-p-":
         consulta += " -p-"
     elif puerto_seleccionado == "-p específicos" and entrada_puertos_especificos.get():
-        consulta += f" -p{entrada_puertos_especificos.get()}"
+        if entrada_puertos_especificos.get().endswith(","):
+            entrada_puertos_especificos_sin_coma_final = entrada_puertos_especificos.get()
+            consulta += f" -p{entrada_puertos_especificos_sin_coma_final[:-1]}"
+        else:
+            consulta += f" -p{entrada_puertos_especificos.get()}"
+    elif puerto_seleccionado == "-F":
+        consulta += " -F"
 
     consulta += f" {ip_valor}"
 
@@ -233,10 +279,114 @@ def limpiar_texto_consulta():
     var_T.set(0)
 
 
+def actualizar_puertos(*args):
+
+    if opcion_seleccionada_puertos.get() == "-p":
+        consulta = opcion_seleccionada_puertos.get() + " " + entrada_puerto.get()
+        entrada_puerto.bind('<KeyRelease>', actualizar_consulta_nmap())
+        actualizar_consulta_nmap()
+        print(consulta)
+
+
+    elif opcion_seleccionada_puertos.get() == "-p rango":
+        actualizar_consulta_nmap()
+        seleccion_puerto = entrada_puerto_inicio.bind('<KeyRelease>', lambda event: actualizar_consulta_nmap())
+
+
+def validar_puerto_unico(event):
+    try:
+        puerto = int(entrada_puerto.get())
+        if 1 <= puerto <= 65535:
+            entrada_puerto.config(bg="#009933", fg="white") # verde
+        else:
+            entrada_puerto.config(bg="#ff4d4d") # rojo
+            actualizar_consulta_nmap()
+    except ValueError:
+        entrada_puerto.config(bg="#ff4d4d") # rojo
+
+    if entrada_puerto.get() == "":
+        entrada_puerto.config(bg="white")  # blanco
+
+    actualizar_consulta_nmap()
+
+
+def validar_rango_puertos(event):
+    puerto_inicio_valido = False
+    puerto_fin_valido = False
+    puerto_inicio = None
+    puerto_fin = None
+
+    texto_puerto_inicio = entrada_puerto_inicio.get()
+    texto_puerto_fin = entrada_puerto_fin.get()
+
+    # Validar puerto de inicio
+    if texto_puerto_inicio:
+        try:
+            puerto_inicio = int(texto_puerto_inicio)
+            if 1 <= puerto_inicio <= 65535:
+                puerto_inicio_valido = True
+        except ValueError:
+            pass
+
+    # Validar puerto final
+    if texto_puerto_fin:
+        try:
+            puerto_fin = int(texto_puerto_fin)
+            if 1 <= puerto_fin <= 65535:
+                puerto_fin_valido = True
+        except ValueError:
+            pass
+
+    # Comprobar la coherencia del rango
+    rango_valido = puerto_inicio_valido and puerto_fin_valido and (puerto_inicio is not None) and (puerto_fin is not None) and (puerto_inicio <= puerto_fin)
+
+    # Actualizar colores de fondo según la validación
+    color_inicio = "#009933" if puerto_inicio_valido and rango_valido else ("white" if texto_puerto_inicio == "" else "#ff4d4d")
+    color_fin = "#009933" if puerto_fin_valido and rango_valido else ("white" if texto_puerto_fin == "" else "#ff4d4d")
+
+    entrada_puerto_inicio.config(bg=color_inicio)
+    entrada_puerto_fin.config(bg=color_fin)
+
+    actualizar_consulta_nmap()
+
+
+
+
+def validar_puertos_especificos(event):
+    texto_entrada = entrada_puertos_especificos.get().strip()
+    puertos_validos = True
+    puertos_introducidos = set()
+
+    if texto_entrada:
+        puertos_lista = [p.strip() for p in texto_entrada.split(',') if p.strip()]  # Elimina espacios en blanco y elementos vacíos
+
+        for puerto in puertos_lista:
+            try:
+                valor = int(puerto)
+                if valor in puertos_introducidos:
+                    puertos_validos = False
+                    break
+                elif not (1 <= valor <= 65535):
+                    puertos_validos = False
+                    break
+                puertos_introducidos.add(valor)
+            except ValueError:
+                puertos_validos = False
+                break
+    else:
+        puertos_validos = False
+
+    # Establecer el color de fondo según si la entrada está vacía o no
+    entrada_puertos_especificos.config(bg="white" if texto_entrada == "" else ("#009933" if puertos_validos else "#ff4d4d"))
+
+    actualizar_consulta_nmap()
+
+
+
 
 # ventana principal
 ventana_principal = tk.Tk()
-ventana_principal.title("Generador de consultas Nmap")
+ventana_principal.title("Visual Nmap v1.3 - Generador de consultas Nmap")
 ventana_principal.geometry("1500x600")
 ventana_principal.minsize(1600, 650)
 
@@ -352,7 +502,7 @@ entrada_texto_ip.pack()
 entrada_texto_ip.bind('<KeyRelease>', lambda event: actualizar_consulta_nmap())
 
 # Sección consulta generada
-seccion_consulta_generada = tk.LabelFrame(marco_izquierdo, text="Consulta generada para Nmap 7.94 ")
+seccion_consulta_generada = tk.LabelFrame(marco_izquierdo, text="Consulta generada para Nmap v7.94 ")
 seccion_consulta_generada.pack(padx=10, pady=10, fill=tk.BOTH)
 
 
@@ -413,13 +563,23 @@ tab_descubrimiento_red = ttk.Frame(notebook)
 tab_tecnica_escaneo = ttk.Frame(notebook)
 tab_opciones_servicios_y_version = ttk.Frame(notebook)
 tab_puertos = ttk.Frame(notebook)
+tab_evasion = ttk.Frame(notebook)
+tab_scripts = ttk.Frame(notebook)
+tab_otras_opciones = ttk.Frame(notebook)
 
 # Añadir pestañas al notebook
 notebook.add(tab_descubrimiento_red, text="Descubrimiento de Red")
 notebook.add(tab_tecnica_escaneo, text="Ténica de Escaneo")
 notebook.add(tab_opciones_servicios_y_version, text="Servicios y versiones")
 notebook.add(tab_puertos, text="Puertos")
+notebook.add(tab_evasion, text="Evasión")
+notebook.add(tab_scripts, text="Scripts")
+notebook.add(tab_otras_opciones, text="Otras Opciones")
 
+# Suponiendo que 'notebook' es tu ttk.Notebook y 'tab_x' son las pestañas que quieres deshabilitar
+notebook.tab(tab_evasion, state='disabled')
+notebook.tab(tab_scripts, state='disabled')
+notebook.tab(tab_otras_opciones, state='disabled')
 
 
 
@@ -490,7 +650,7 @@ opciones_servicios_y_versiones = {
     "-sV": "nivel de intensidad",
     "-A": "activar detección de sistema operativo y versión de servicios",
     "-O": "activar detección de sistema operativo",
-    "-f": "utilizar técnicas de fragmentación",
+    "-F": "escanea los 100 primeros puertos",
     "-T": "Timing (velocidad del escaneo)"
 }
 
@@ -501,8 +661,6 @@ contenedor_servicios_y_versiones.pack(anchor=tk.W)
 var_sV = tk.IntVar(value=0)
 var_A = tk.IntVar(value=0)
 var_O = tk.IntVar(value=0)
-var_f = tk.IntVar(value=0)
-var_T = tk.IntVar(value=0)
 
 # Crear Checkbutton y Label para -sV
 contenedor_sV = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
@@ -511,6 +669,14 @@ check_sV = tk.Checkbutton(contenedor_sV, text="-sV", variable=var_sV, command=ac
 check_sV.pack(side=tk.LEFT)
 label_sV = tk.Label(contenedor_sV, text=f"--> {opciones_servicios_y_versiones['-sV']}")
 label_sV.pack(side=tk.LEFT)
+
+# Crear una variable de control para el nivel de intensidad
+var_nivel_intensidad = tk.IntVar(value=0)
+
+# Crear un Scale (deslizador) para el nivel de intensidad
+scale_nivel_intensidad = tk.Scale(contenedor_sV, from_=0, to=9, orient=tk.HORIZONTAL, variable=var_nivel_intensidad, command=on_scale_movido)
+scale_nivel_intensidad.pack(side=tk.LEFT)
+manejar_estado_nivel_intensidad()
 
 # Crear Checkbutton y Label para -A
 contenedor_A = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
@@ -528,86 +694,133 @@ check_O.pack(side=tk.LEFT)
 label_O = tk.Label(contenedor_O, text=f"--> {opciones_servicios_y_versiones['-O']}")
 label_O.pack(side=tk.LEFT)
 
-# Crear Checkbutton y Label para -f
-contenedor_f = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
-contenedor_f.pack(fill=tk.X)
-check_f = tk.Checkbutton(contenedor_f, text="-f", variable=var_f, command=actualizar_consulta_nmap)
-check_f.pack(side=tk.LEFT)
-label_f = tk.Label(contenedor_f, text=f"--> {opciones_servicios_y_versiones['-f']}")
-label_f.pack(side=tk.LEFT)
 
-# Crear Checkbutton y Label para -T
-contenedor_T = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
-contenedor_T.pack(fill=tk.X)
-check_T = tk.Checkbutton(contenedor_T, text="-T", variable=var_T, command=actualizar_consulta_nmap)
-check_T.pack(side=tk.LEFT)
-label_T = tk.Label(contenedor_T, text=f"--> {opciones_servicios_y_versiones['-T']}")
-label_T.pack(side=tk.LEFT)
 
 
 # Sección Puertos
 # Diccionario con las opciones y descripciones
 port_options = {
-    "-p": "Puerto único:",
-    "-p rango": "Rango de puertos:",
-    "-p-": "Todos los puertos",
-    "-p específicos": "Puertos específicos separados por comas:"
+    "-p": "puerto único:",
+    "-p rango": "rango de puertos:",
+    "-p específicos": "puertos específicos separados por comas:",
+    "-F": "escanea los 1000 primeros puertos",
+    "-p-": "todos los puertos"
 }
 
 # Variable para guardar la opción seleccionada en la pestaña de Puertos
 opcion_seleccionada_puertos = tk.StringVar(value="")
 
-# Sección Puertos
-def actualizar_puertos(*args):
-
-    if opcion_seleccionada_puertos.get() == "-p":
-        consulta = opcion_seleccionada_puertos.get() + " " + entrada_puerto.get()
-        entrada_puerto.bind('<KeyRelease>', actualizar_consulta_nmap())
-        actualizar_consulta_nmap()
-        print(consulta)
-
-
-    elif opcion_seleccionada_puertos.get() == "-p rango":
-        actualizar_consulta_nmap()
-        seleccion_puerto = entrada_puerto_inicio.bind('<KeyRelease>', lambda event: actualizar_consulta_nmap())
-
-
-
-# Crear botones radiales y entradas de texto para puertos
+# Crear botones radiales, etiquetas y entradas de texto para puertos
 for clave, descripcion in port_options.items():
     contenedor_puertos = tk.Frame(tab_puertos, padx=3, pady=3)
     contenedor_puertos.pack(anchor=tk.W)
 
-    # Vincular cada Radiobutton a la función actualizar_consulta_nmap
-    rb = tk.Radiobutton(contenedor_puertos, text=descripcion, variable=opcion_seleccionada_puertos, value=clave, command=actualizar_consulta_nmap)
+    # Crear y añadir el Radiobutton
+    rb = tk.Radiobutton(contenedor_puertos, text=clave, variable=opcion_seleccionada_puertos, value=clave, command=actualizar_consulta_nmap)
     rb.pack(side=tk.LEFT)
 
+    # Crear y añadir la etiqueta después del Radiobutton
+    etiqueta = tk.Label(contenedor_puertos, text=f"--> {descripcion}")
+    etiqueta.pack(side=tk.LEFT)
+
+    # Añadir entradas de texto específicas según la clave
     if clave == "-p":
         entrada_puerto = tk.Entry(contenedor_puertos, width=10)
         entrada_puerto.pack(side=tk.LEFT)
-        entrada_puerto.bind('<KeyRelease>', actualizar_consulta_nmap)
+        entrada_puerto.bind('<KeyRelease>', validar_puerto_unico)
 
     elif clave == "-p rango":
         entrada_puerto_inicio = tk.Entry(contenedor_puertos, width=5)
         entrada_puerto_inicio.pack(side=tk.LEFT)
-        entrada_puerto_inicio.bind('<KeyRelease>', actualizar_consulta_nmap)
+        entrada_puerto_inicio.bind('<KeyRelease>', validar_rango_puertos)
 
         tk.Label(contenedor_puertos, text="-").pack(side=tk.LEFT)
 
         entrada_puerto_fin = tk.Entry(contenedor_puertos, width=5)
         entrada_puerto_fin.pack(side=tk.LEFT)
-        entrada_puerto_fin.bind('<KeyRelease>', actualizar_consulta_nmap)
+        entrada_puerto_fin.bind('<KeyRelease>', validar_rango_puertos)
 
     elif clave == "-p específicos":
         entrada_puertos_especificos = tk.Entry(contenedor_puertos, width=30)
         entrada_puertos_especificos.pack(side=tk.LEFT)
-        entrada_puertos_especificos.bind('<KeyRelease>', actualizar_consulta_nmap)
+        entrada_puertos_especificos.bind('<KeyRelease>', validar_puertos_especificos)
 
 opcion_seleccionada_puertos.set(None)  # Establecer una opción por defecto
 
-# La función actualizar_puertos deberá ser implementada para actualizar la consulta de Nmap según la opción seleccionada
 
 
+var_T = tk.IntVar(value=0)
+
+# Diccionario con opciones y descripciones para Evasión
+opciones_evasion = {
+    "-T": "Timing (velocidad del escaneo)",
+    "-f": "Utilizar técnicas de fragmentación",
+    "--mtu": "Especificar el MTU",
+    "-D": "Usar hosts señuelo",
+    "-S": "Usar una dirección IP de origen falsa",
+    "--proxies": "Utilizar proxies",
+    "--data-length": "Añadir datos aleatorios a los paquetes enviados"
+}
+
+
+
+var_f = tk.IntVar(value=0)
+
+# Crear Checkbuttons y Labels para Evasión
+# Crear Checkbutton y Label para -f
+contenedor_f = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_f.pack(fill=tk.X)
+check_f = tk.Checkbutton(contenedor_f, text="-f", variable=var_f, command=actualizar_consulta_nmap)
+check_f.pack(side=tk.LEFT)
+label_f = tk.Label(contenedor_f, text=f"--> {opciones_evasion['-f']}")
+label_f.pack(side=tk.LEFT)
+
+# Crear Checkbutton y Label para -T
+contenedor_T = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_T.pack(fill=tk.X)
+check_T = tk.Checkbutton(contenedor_T, text="-T", variable=var_T, command=actualizar_consulta_nmap)
+check_T.pack(side=tk.LEFT)
+label_T = tk.Label(contenedor_T, text=f"--> {opciones_evasion['-T']}")
+label_T.pack(side=tk.LEFT)
+
+
+# Diccionario con opciones y descripciones para Scripts
+opciones_scripts = {
+    "-sC": "Ejecutar scripts por defecto"
+}
+
+# Crear Checkbuttons y Labels para Scripts
+for comando, descripcion in opciones_scripts.items():
+    contenedor = tk.Frame(tab_scripts, padx=3, pady=3)
+    contenedor.pack(fill=tk.X)
+
+    var = tk.IntVar(value=0)
+    check = tk.Checkbutton(contenedor, text=comando, variable=var)
+    check.pack(side=tk.LEFT)
+
+    label = tk.Label(contenedor, text=f"--> {descripcion}")
+    label.pack(side=tk.LEFT)
+
+
+
+
+# Diccionario con opciones y descripciones para Otras Opciones
+opciones_otras = {
+    "-v": "Nivel de verbosidad 1",
+    "-vv": "Nivel de verbosidad 2"
+}
+
+# Crear Checkbuttons y Labels para Otras Opciones
+for comando, descripcion in opciones_otras.items():
+    contenedor = tk.Frame(tab_otras_opciones, padx=3, pady=3)
+    contenedor.pack(fill=tk.X)
+
+    var = tk.IntVar(value=0)
+    check = tk.Checkbutton(contenedor, text=comando, variable=var)
+    check.pack(side=tk.LEFT)
+
+    label = tk.Label(contenedor, text=f"--> {descripcion}")
+    label.pack(side=tk.LEFT)
 
 
 
