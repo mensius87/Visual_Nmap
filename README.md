@@ -1,11 +1,13 @@
-# Generador de Consultas Nmap con Interfaz Gráfica :computer:
+# :computer: Generador de Consultas Nmap con Interfaz Gráfica 
 <br>
 
 <p align="center">
   <img src="images/Visual_Nmap_icono.ico" alt="Ejemplo de imagen">
 </p><br>
 
+<p>Haz clic en el GIF para verlo ampliado y con detalle</p>
 
+![Visual_Nmap3](https://github.com/mensius87/Visual_Nmap/assets/136935764/1c2bd420-e22b-4c56-b0c6-f3819f30f9b6)
 
 ## :construction: Este proyecto está actualmente en construcción. :construction:
 Puede que algunas funcionalidades no estén completas o sufran cambios.
