@@ -1,12 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, Menu, messagebox, font
-import os, sys, json, ipaddress, pyperclip
-
+import os, sys, json, ipaddress, pyperclip, subprocess
 
 def mostrar_sobre_el_autor():
     ventana_sobre_autor = tk.Toplevel(pady=10)
     ventana_sobre_autor.title("Sobre el Autor")
-    ventana_sobre_autor.geometry("550x375")  # Ajusta el tamaño según tus necesidades
+    ventana_sobre_autor.geometry("550x335")  # Ajusta el tamaño según tus necesidades
     ventana_sobre_autor.config(bg="#333333")
 
     def abrir_enlace():
@@ -14,25 +13,25 @@ def mostrar_sobre_el_autor():
         webbrowser.open("https://github.com/mensius87")
 
     # Cargar y mostrar la imagen del icono
-    ruta_imagen_icono = "images/Visual_Nmap_icono.png"
+    ruta_imagen_icono = os.path.join('images', 'Visual_Nmap_icono.png')
     imagen_icono = tk.PhotoImage(file=ruta_imagen_icono)
     label_imagen_icono = tk.Label(ventana_sobre_autor, image=imagen_icono, bg="#333333")
     label_imagen_icono.image = imagen_icono  # Guarda una referencia de la imagen
     label_imagen_icono.pack()
 
     fuente_grande = font.Font(family="Helvetica", size=14)
-    enlace_label = tk.Label(ventana_sobre_autor, text="Programa desarrolado por mensius87. Licencia MIT. Mis proyectos:" , bg="#333333", fg="white")
+    enlace_label = tk.Label(ventana_sobre_autor, text="Programa desarrollado por mensius87. Licencia MIT. Mis proyectos:" , bg="#333333", fg="white")
     enlace_label.pack()
 
     # Crear un label con el enlace
-    enlace_label = tk.Label(ventana_sobre_autor, text="https://github.com/mensius87", fg="blue", cursor="hand2", bg="#333333", font=fuente_grande)
+    enlace_label = tk.Label(ventana_sobre_autor, text="https://github.com/mensius87", fg="#ADD8E6", cursor="hand2", bg="#333333", font=fuente_grande)
     enlace_label.pack()
 
     # Asociar la función abrir_enlace al clic en el label
     enlace_label.bind("<Button-1>", lambda event: abrir_enlace())
 
     # Cargar y mostrar la imagen del banner
-    ruta_imagen_banner = "images/banner_autor.png"
+    ruta_imagen_banner = os.path.join('images', 'banner_autor.png')
     imagen_banner = tk.PhotoImage(file=ruta_imagen_banner)
     label_imagen_banner = tk.Label(ventana_sobre_autor, image=imagen_banner, bg="#333333")
     label_imagen_banner.image = imagen_banner  # Guarda una referencia de la imagen
@@ -59,6 +58,9 @@ def modo_oscuro():
     menu_archivo.config(bg="#dcdad5")
     menu_ver.config(bg="#dcdad5")
     menu_ayuda.config(bg="#dcdad5")
+    sV_valor_intensidad.config(bg="#dcdad5")
+    scale_nivel_intensidad.config(bg="#dcdad5")
+
 
     seccion_resultado_consulta.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
     seccion_exportar_resultados.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
@@ -123,6 +125,17 @@ def modo_claro():
         ventana_principal.destroy()
         os.execl(sys.executable, sys.executable, *sys.argv)
 
+import re
+
+def es_dominio_valido(dominio):
+    patron_dominio_con_www = re.compile(r'^www\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,6}$')
+    patron_dominio_sin_www = re.compile(r'^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,6}$')
+
+    if dominio.startswith('www.'):
+        return bool(patron_dominio_con_www.match(dominio))
+    else:
+        return bool(patron_dominio_sin_www.match(dominio))
+
 
 def es_rango_ip_valido(rango_ip):
     try:
@@ -138,7 +151,7 @@ def es_rango_ip_valido(rango_ip):
     return True
 
 
-def es_direccion_o_red_valida(direccion):
+def es_direccion_o_red_o_dominio_valido(direccion):
     try:
         # Intenta interpretar la entrada como una dirección IP
         ipaddress.ip_address(direccion)
@@ -150,23 +163,40 @@ def es_direccion_o_red_valida(direccion):
             ipaddress.ip_network(direccion, strict=False)
             return True
         except ValueError:
-            return es_rango_ip_valido(direccion)
+            if es_rango_ip_valido(direccion):
+                return True
+            else:
+                return es_dominio_valido(direccion)
 
-def manejar_incompatibilidad_A_O():
+
+
+def manejar_incompatibilidad_A_O_sV():
+    # Deshabilitar -O y -sV si -A está seleccionado
     if var_A.get() == 1:
         check_O.config(state=tk.DISABLED)
+        check_sV.config(state=tk.DISABLED)
         var_O.set(0)
+        var_sV.set(0)
     else:
-        check_O.config(state=tk.NORMAL)
+        # Habilitar -O y -sV sólo si ellos mismos no están seleccionados
+        if var_O.get() == 0:
+            check_O.config(state=tk.NORMAL)
+        if var_sV.get() == 0:
+            check_sV.config(state=tk.NORMAL)
 
-    if var_O.get() == 1:
+    # Deshabilitar -A si -O o -sV están seleccionados
+    if var_O.get() == 1 or var_sV.get() == 1:
         check_A.config(state=tk.DISABLED)
         var_A.set(0)
     else:
-        check_A.config(state=tk.NORMAL)
+        # Habilitar -A sólo si -A no está seleccionado
+        if var_A.get() == 0:
+            check_A.config(state=tk.NORMAL)
 
-def manejar_estado_nivel_intensidad():
-    global sV_escala_usada
+
+
+def manejar_estado_nivel_intensidad_sV():
+
     # Habilitar o deshabilitar el Scale basado en el estado del Checkbutton -sV
     if var_sV.get() == 1:
         scale_nivel_intensidad.config(state=tk.NORMAL)
@@ -177,13 +207,33 @@ def manejar_estado_nivel_intensidad():
 
 sV_escala_usada = False
 
-def on_scale_movido(val):
+def si_escala_movida_sV(val):
     global sV_escala_usada
     if not sV_escala_usada:
         sV_escala_usada = True
     if var_sV.get() == 0:
         sV_escala_usada = False
 
+    sV_valor_intensidad.config(text=str(val))
+    actualizar_consulta_nmap()
+
+T_escala_usada = False
+def manejar_estado_nivel_intensidad_T():
+
+    if var_T.get() == 1:
+        scale_nivel_intensidad_T.config(state=tk.NORMAL)
+    else:
+        scale_nivel_intensidad_T.config(state=tk.DISABLED)
+
+
+def si_escala_movida_T(val):
+    global T_escala_usada
+    if not T_escala_usada:
+        T_escala_usada = True
+    if var_T.get() == 0:
+        T_escala_usada = False
+
+    T_valor_intensidad.config(text=str(val))
     actualizar_consulta_nmap()
 
 
@@ -198,7 +248,7 @@ def actualizar_consulta_nmap(*args):
 
     ip_valor = entrada_texto_ip.get()
 
-    if es_direccion_o_red_valida(ip_valor):
+    if es_direccion_o_red_o_dominio_valido(ip_valor):
         entrada_texto_ip.config(bg='#009933')  # Fondo verde para entrada válida
         # Continuar con la actualización de la consulta si la entrada es válida
 
@@ -219,7 +269,7 @@ def actualizar_consulta_nmap(*args):
         consulta += f" {tecnicas_escaneo}"
 
     # Verificar el estado de cada Checkbutton y añadir a la consulta
-    manejar_estado_nivel_intensidad()
+    manejar_estado_nivel_intensidad_sV()
     nivel_instensidad_sV = var_nivel_intensidad.get()
 
     if var_sV.get() == 1:
@@ -234,7 +284,9 @@ def actualizar_consulta_nmap(*args):
         consulta += " -f"
     if var_T.get() == 1:
         consulta += " -T"
-
+    if var_T.get() == 1:
+        nivel_intensidad_T = var_nivel_intensidad_T.get()
+        consulta += f"{nivel_intensidad_T}"
 
     # Añadir la opción de puertos
     puerto_seleccionado = opcion_seleccionada_puertos.get()
@@ -252,6 +304,9 @@ def actualizar_consulta_nmap(*args):
             consulta += f" -p{entrada_puertos_especificos.get()}"
     elif puerto_seleccionado == "-F":
         consulta += " -F"
+
+    # Añadir el nivel de intensidad de -T si está seleccionado
+
 
     consulta += f" {ip_valor}"
 
@@ -277,6 +332,7 @@ def limpiar_texto_consulta():
     var_O.set(0)
     var_f.set(0)
     var_T.set(0)
+    opcion_seleccionada_puertos.set(0)
 
 
 def actualizar_puertos(*args):
@@ -350,8 +406,6 @@ def validar_rango_puertos(event):
     actualizar_consulta_nmap()
 
 
-
-
 def validar_puertos_especificos(event):
     texto_entrada = entrada_puertos_especificos.get().strip()
     puertos_validos = True
@@ -381,12 +435,33 @@ def validar_puertos_especificos(event):
 
     actualizar_consulta_nmap()
 
+def ejecutar_escaneo_nmap():
+    # Obtener el comando de Nmap
+    # Ejemplo: Si Nmap está instalado en "C:\Program Files\Nmap\nmap.exe"
+    ruta_nmap = "C:\\Program Files (x86)\\Nmap\\nmap.exe"
+    comando_nmap = f"{ruta_nmap} {cuadro_texto_consulta_generada.get('1.0', tk.END).strip()}"
+
+    if comando_nmap:
+        try:
+            # Ejecutar el comando de Nmap
+            resultado = subprocess.check_output(comando_nmap, shell=True, text=True, stderr=subprocess.STDOUT)
+
+            # Mostrar los resultados en el cuadro de texto
+            resultado_nmap.config(state=tk.NORMAL)
+            resultado_nmap.delete('1.0', tk.END)
+            resultado_nmap.insert('1.0', resultado)
+            resultado_nmap.config(state=tk.DISABLED, fg='green')
+
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror("Error", f"Hubo un error al ejecutar Nmap:\n{e.output}")
+    else:
+        messagebox.showinfo("Información", "Introduce un comando de Nmap válido.")
 
 
 
 # ventana principal
 ventana_principal = tk.Tk()
-ventana_principal.title("Visual Nmap v1.3 - Generador de consultas Nmap")
+ventana_principal.title("Visual Nmap v1.4 - Generador de consultas Nmap")
 ventana_principal.geometry("1500x600")
 ventana_principal.minsize(1600, 650)
 
@@ -455,8 +530,6 @@ seccion_exportar_resultados.grid_columnconfigure(0, weight=1)
 contenedor_principal_exportar = tk.Frame(seccion_exportar_resultados)
 contenedor_principal_exportar.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
 
-# El resto del código para los checkbuttons y la entrada de texto permanece igual
-
 
 # Sub-Frame para la entrada de texto y su label
 marco_entrada_texto_nombre_salida_archivo = tk.Frame(contenedor_principal_exportar)
@@ -487,13 +560,12 @@ check_todos_formatos.grid(row=1, column=1, sticky="w")
 
 
 
-
 # Contenedor izquierdo
 marco_izquierdo = tk.Frame(ventana_principal)
 marco_izquierdo.pack(side=tk.LEFT, fill=tk.BOTH)
 
 # etiqueta entrada ip o red
-etiqueta_casilla_ip = tk.Label(marco_izquierdo, text="Introduce IP, rango o red")
+etiqueta_casilla_ip = tk.Label(marco_izquierdo, text="Introduce IP, rango, red o dominio")
 etiqueta_casilla_ip.pack()
 
 # Casilla de entrada para introducir IP o red
@@ -512,7 +584,6 @@ contenedor_general_consulta_generada = tk.Frame(seccion_consulta_generada)
 contenedor_general_consulta_generada.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
 
-
 # Contenedor consulta generada
 contenedor_consulta_generada = tk.Frame(contenedor_general_consulta_generada)
 contenedor_consulta_generada.pack(padx=5, pady=5, fill=tk.X)
@@ -527,23 +598,24 @@ cuadro_texto_consulta_generada.insert(tk.END, comando_fijado_de_serie_nmap)
 cuadro_texto_consulta_generada.config(state=tk.DISABLED)
 
 
-
 # Contenedor botones
 contenedor_botones = tk.Frame(contenedor_general_consulta_generada)
 contenedor_botones.pack(padx=5, pady=5, fill=tk.X)
 
 # Botón copiar
-icono_copiar = tk.PhotoImage(file="images/duplicar.png")
+ruta_icono_copiar = os.path.join('images', 'duplicar.png')
+icono_copiar = tk.PhotoImage(file=ruta_icono_copiar)
 boton_copiar = tk.Button(contenedor_botones, text="Copiar", bg="blue", image=icono_copiar, command=copiar_al_portapapeles)
 boton_copiar.pack(side=tk.RIGHT, padx=5)
 
 # Botón limpiar
-icono_limpiar_consulta = tk.PhotoImage(file="images/limpiar.png")
+ruta_icono_limpiar_consulta = os.path.join('images', 'limpiar.png')
+icono_limpiar_consulta = tk.PhotoImage(file=ruta_icono_limpiar_consulta)
 boton_limpiar_consulta = tk.Button(contenedor_botones, text="Limpiar", bg="red", image=icono_limpiar_consulta, command=limpiar_texto_consulta)
 boton_limpiar_consulta.pack(side=tk.RIGHT, padx=5)
 
 # Botón escanear
-boton_escanear = tk.Button(contenedor_botones, text="ESCANEAR", bg="green", fg="white")
+boton_escanear = tk.Button(contenedor_botones, text="ESCANEAR", bg="green", fg="white", command=ejecutar_escaneo_nmap)
 boton_escanear.pack(side=tk.BOTTOM, padx=5, fill=tk.BOTH, expand=True)
 
 
@@ -577,7 +649,7 @@ notebook.add(tab_scripts, text="Scripts")
 notebook.add(tab_otras_opciones, text="Otras Opciones")
 
 # Suponiendo que 'notebook' es tu ttk.Notebook y 'tab_x' son las pestañas que quieres deshabilitar
-notebook.tab(tab_evasion, state='disabled')
+#notebook.tab(tab_evasion, state='disabled')
 notebook.tab(tab_scripts, state='disabled')
 notebook.tab(tab_otras_opciones, state='disabled')
 
@@ -585,15 +657,16 @@ notebook.tab(tab_otras_opciones, state='disabled')
 
 # Diccionario con opciones y sus descripciones
 opciones_descubrimiento_red = {
-    "-sL": "List Scan: Simplemente lista las IP especificadas sin enviar paquetes a ellas.",
-    "-sn": "Ping Scan: Realiza un escaneo ping para determinar qué hosts están activos.",
-    "-Pn": "No Ping: Evita el descubrimiento de hosts y asume que están activos.",
-    "-PS": "TCP SYN Ping Scan: Utiliza un escaneo SYN para determinar qué hosts están activos.",
-    "-PA": "TCP ACK Ping Scan: Utiliza paquetes ACK para determinar qué hosts están activos.",
-    "-PU": "UDP Ping Scan: Utiliza paquetes UDP para determinar qué hosts están activos.",
-    "-PR": "ARP Ping Scan: Utiliza solicitudes ARP para determinar qué hosts están activos.",
-    "-n": "No DNS Resolution: Evita la resolución DNS durante el escaneo."
+    "-sL": "List Scan: enumera direcciones IP sin generar tráfico de red.",
+    "-sn": "Ping Scan: identifica hosts activos mediante pings de red.",
+    "-Pn": "No Ping: presume que todos los hosts están activos, omitiendo el descubrimiento previo.",
+    "-PS": "TCP SYN Ping Scan: detecta hosts activos con pings SYN en TCP.",
+    "-PA": "TCP ACK Ping Scan: utiliza pings ACK en TCP para identificar hosts en línea.",
+    "-PU": "UDP Ping Scan: descubre hosts activos con pings UDP.",
+    "-PR": "ARP Ping Scan: localiza hosts activos en redes locales usando ARP.",
+    "-n": "No DNS Resolution: omite la resolución de DNS para acelerar el escaneo."
 }
+
 
 # Variable para guardar la opción seleccionada
 opcion_seleccionada_descubrimiento_red = tk.StringVar(value="")
@@ -616,16 +689,18 @@ opcion_seleccionada_descubrimiento_red.set(None)
 # Sección ténicas de escaneo
 # Diccionario con opciones y sus descripciones
 opciones_tecnica_escaneo = {
-    "-sS": "TCP SYN Scan: Escanea puertos específicos utilizando un paquete SYN.",
-    "-sT": "TCP Connect Scan: Conecta a los puertos especificados para determinar si están abiertos.",
-    "-sA": "TCP ACK Scan: Determina si los puertos están filtrados, no filtrados o cerrados.",
-    "-sU": "UDP Scan: Escanea puertos UDP para determinar su estado.",
-    "-Sf": "FIN Scan: Envía un paquete FIN para determinar si el puerto está abierto o cerrado.",
-    "-sX": "Xmas Scan: Envía un conjunto de flags para determinar la respuesta del puerto.",
-    "-Sp": "SCTP INIT Scan: Escanea puertos SCTP utilizando el mensaje INIT.",
-    "-sN": "Null Scan: Envía un paquete con todos los flags TCP apagados para determinar la respuesta del puerto.",
-    "-sL": "List Scan: Lista las IP sin enviar paquetes a ellas."
+    "-sS": "TCP SYN Scan: verifica puertos abiertos simulando el inicio de una conexión TCP pero sin completar la conexión",
+    "-sT": "TCP Connect Scan: comprueba la apertura de puertos completando una conexión TCP",
+    "-sA": "TCP ACK Scan: usa paquetes ACK para determinar si los puertos están filtrados o no",
+    "-sU": "UDP Scan: examina puertos UDP enviando paquetes UDP para ver si responden",
+    "-Sf": "FIN Scan: envía paquetes FIN a puertos para identificar cuáles no están filtrados",
+    "-sX": "Xmas Scan: usa paquetes con combinaciones inusuales de flags para analizar puertos",
+    "-Sp": "SCTP INIT Scan: inspecciona puertos SCTP mediante mensajes de inicio SCTP",
+    "-sN": "Null Scan: envía paquetes sin ningún flag activado para observar reacciones de puertos",
+    "-sL": "List Scan: enumera IPs objetivo sin enviar tráfico activo a los puertos"
 }
+
+
 
 # Variable para guardar la opción seleccionada
 opcion_seleccionada_tecnica_escaneo = tk.StringVar(value="")
@@ -647,12 +722,11 @@ opcion_seleccionada_tecnica_escaneo.set(None)
 # Sección servicios y versiones
 # Diccionario con opciones y descripciones
 opciones_servicios_y_versiones = {
-    "-sV": "nivel de intensidad",
-    "-A": "activar detección de sistema operativo y versión de servicios",
-    "-O": "activar detección de sistema operativo",
-    "-F": "escanea los 100 primeros puertos",
-    "-T": "Timing (velocidad del escaneo)"
+    "-sV": "detección de versiones de servicios. Se puede especificar la intensidad de 0 (ligero) a 9 (agresivo)",
+    "-O": "detección de sistema operativo: activa la identificación del sistema operativo del objetivo",
+    "-A": "detección avanzada: combina detección de SO, versiones de servicios y script scanning"
 }
+
 
 contenedor_servicios_y_versiones = tk.Frame(tab_opciones_servicios_y_version, padx=3, pady=3)
 contenedor_servicios_y_versiones.pack(anchor=tk.W)
@@ -665,7 +739,7 @@ var_O = tk.IntVar(value=0)
 # Crear Checkbutton y Label para -sV
 contenedor_sV = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
 contenedor_sV.pack(fill=tk.X)
-check_sV = tk.Checkbutton(contenedor_sV, text="-sV", variable=var_sV, command=actualizar_consulta_nmap)
+check_sV = tk.Checkbutton(contenedor_sV, text="-sV", variable=var_sV, command=lambda: [manejar_incompatibilidad_A_O_sV(), actualizar_consulta_nmap()])
 check_sV.pack(side=tk.LEFT)
 label_sV = tk.Label(contenedor_sV, text=f"--> {opciones_servicios_y_versiones['-sV']}")
 label_sV.pack(side=tk.LEFT)
@@ -674,14 +748,18 @@ label_sV.pack(side=tk.LEFT)
 var_nivel_intensidad = tk.IntVar(value=0)
 
 # Crear un Scale (deslizador) para el nivel de intensidad
-scale_nivel_intensidad = tk.Scale(contenedor_sV, from_=0, to=9, orient=tk.HORIZONTAL, variable=var_nivel_intensidad, command=on_scale_movido)
+scale_nivel_intensidad = tk.Scale(contenedor_sV, from_=0, to=9, showvalue= False, orient=tk.HORIZONTAL, variable=var_nivel_intensidad, command=si_escala_movida_sV)
 scale_nivel_intensidad.pack(side=tk.LEFT)
-manejar_estado_nivel_intensidad()
+manejar_estado_nivel_intensidad_sV()
+
+sV_valor_intensidad = tk.Label(contenedor_sV, text="0")
+sV_valor_intensidad.pack(side=tk.LEFT)
+
 
 # Crear Checkbutton y Label para -A
 contenedor_A = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
 contenedor_A.pack(fill=tk.X)
-check_A = tk.Checkbutton(contenedor_A, text="-A", variable=var_A, command=lambda: [manejar_incompatibilidad_A_O(), actualizar_consulta_nmap()])
+check_A = tk.Checkbutton(contenedor_A, text="-A", variable=var_A, command=lambda: [manejar_incompatibilidad_A_O_sV(), actualizar_consulta_nmap()])
 check_A.pack(side=tk.LEFT)
 label_A = tk.Label(contenedor_A, text=f"--> {opciones_servicios_y_versiones['-A']}")
 label_A.pack(side=tk.LEFT)
@@ -689,7 +767,7 @@ label_A.pack(side=tk.LEFT)
 # Crear Checkbutton y Label para -O
 contenedor_O = tk.Frame(contenedor_servicios_y_versiones, padx=3, pady=3)
 contenedor_O.pack(fill=tk.X)
-check_O = tk.Checkbutton(contenedor_O, text="-O", variable=var_O, command=lambda: [manejar_incompatibilidad_A_O(), actualizar_consulta_nmap()])
+check_O = tk.Checkbutton(contenedor_O, text="-O", variable=var_O, command=lambda: [manejar_incompatibilidad_A_O_sV(), actualizar_consulta_nmap()])
 check_O.pack(side=tk.LEFT)
 label_O = tk.Label(contenedor_O, text=f"--> {opciones_servicios_y_versiones['-O']}")
 label_O.pack(side=tk.LEFT)
@@ -704,7 +782,7 @@ port_options = {
     "-p rango": "rango de puertos:",
     "-p específicos": "puertos específicos separados por comas:",
     "-F": "escanea los 1000 primeros puertos",
-    "-p-": "todos los puertos"
+    "-p-": "escanea los 65535 puertos existentes"
 }
 
 # Variable para guardar la opción seleccionada en la pestaña de Puertos
@@ -775,13 +853,30 @@ check_f.pack(side=tk.LEFT)
 label_f = tk.Label(contenedor_f, text=f"--> {opciones_evasion['-f']}")
 label_f.pack(side=tk.LEFT)
 
+
+
+
 # Crear Checkbutton y Label para -T
 contenedor_T = tk.Frame(tab_evasion, padx=3, pady=3)
 contenedor_T.pack(fill=tk.X)
 check_T = tk.Checkbutton(contenedor_T, text="-T", variable=var_T, command=actualizar_consulta_nmap)
 check_T.pack(side=tk.LEFT)
+check_T.config(command=lambda: [manejar_estado_nivel_intensidad_T(), actualizar_consulta_nmap()])
 label_T = tk.Label(contenedor_T, text=f"--> {opciones_evasion['-T']}")
 label_T.pack(side=tk.LEFT)
+
+# Variable de control para el nivel de intensidad de -T
+var_nivel_intensidad_T = tk.IntVar(value=0)
+
+# Crear un Scale (deslizador) para el nivel de intensidad de -T
+scale_nivel_intensidad_T = tk.Scale(contenedor_T, from_=0, to=5, showvalue=False, orient=tk.HORIZONTAL, variable=var_nivel_intensidad_T, command=si_escala_movida_T)
+scale_nivel_intensidad_T.pack(side=tk.LEFT)
+scale_nivel_intensidad_T.config(state=tk.DISABLED)
+
+T_valor_intensidad = tk.Label(contenedor_T, text="0")
+T_valor_intensidad.pack(side=tk.LEFT)
+
+
 
 
 # Diccionario con opciones y descripciones para Scripts

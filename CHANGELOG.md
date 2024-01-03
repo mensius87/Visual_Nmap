@@ -1,3 +1,12 @@
+## [1.4] - 03/01/2024
+### Añadido
+- Sección evasión ahora es funcional
+- La escala de -T ahora es funcional y se puede elegir el nivel de 0 a 5 mediante una barra de desplazamiento horizontal
+- La entrada de ip, rango de ip's y o red ahora también admite dominios con su correspondiente validación
+- Boton escanear empiezar a tener funcionalidad: realiza el escaneo y muestra el resutlado en la pantalla de la derecha: funcional en linux y en pruebas en windows
+- Sección sobre el autor mejorada
+
+
 ## [1.3] - 02/01/2024
 ### Añadido
 - Icono de programa

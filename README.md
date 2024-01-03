@@ -3,7 +3,7 @@
 
 <p align="center">
   <img src="images/Visual_Nmap_icono.ico" alt="Ejemplo de imagen">
-</p><br>
+</p><br><br>
 
 <p>Haz clic en el GIF para verlo ampliado y con detalle</p>
 
@@ -46,7 +46,7 @@ Para instalar y ejecutar este proyecto en tu máquina local, sigue los siguiente
 
 1. **Clonar el Repositorio:**
     ```bash
-    git clone https://github.com/tu-usuario/tu-repositorio.git
+    git clone https://github.com/mensius87/Visual_Nmap
     ```
 2. **Navegar al Directorio:**
     ```bash
@@ -61,7 +61,7 @@ Para iniciar la aplicación, asegúrate de tener Python y Tkinter instalados en 
 
 
 ```bash
-python nombre_del_script.py
+python visual_nmap.py
  ```
 <br><br>
 
