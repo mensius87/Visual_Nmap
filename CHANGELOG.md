@@ -1,3 +1,14 @@
+## [1.5] - 04/01/2024
+### Añadido
+- Sección vulnerabilidades es ahora funcional. Permite elegir el modo predeterminado o una categoría específica de vulnerabilidad a través de una lista desplegable.
+- Sección otras opciones ahora funcional. Permite el modo verbose, depuración y análisis de IPv6
+- Sección exportar resultado ahora es funcional:
+    - Permite exportar los resultados de la búsqueda a los diversos formatos de archivo más habituales
+    - El cuadro de entrada del nombre de archivo se muestra con fondo rojo si no es un nombre de archivo válido
+- Correciones menores de código y erratas en menús
+- Ligera optimizacion de código
+
+
 ## [1.4] - 03/01/2024
 ### Añadido
 - Sección evasión ahora es funcional

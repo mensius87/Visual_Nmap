@@ -67,6 +67,7 @@ def modo_oscuro():
     seccion_consulta_generada.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
     seccion_encabezado_opciones_avanzadas.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
 
+
     contenedor_general_consulta_generada.config(bg="#dcdad5")
     contenedor_botones.config(bg="#dcdad5")
     contenedor_A.config(bg="#dcdad5")
@@ -76,21 +77,29 @@ def modo_oscuro():
     contenedor_T.config(bg="#dcdad5")
     contenedor_checkbuttons_exportar_resultados.config(bg="#dcdad5")
     contenedor_principal_exportar.config(bg="#dcdad5")
+    contenedor_script_especifico.config(bg="#dcdad5")
+    contenedor_script_por_defecto.config(bg="#dcdad5")
+    contenedor_otras_opciones.config(bg="#dcdad5")
 
+    check_verbosidad_1.config(bg="#dcdad5")
+    check_verbosidad_2.config(bg="#dcdad5")
     check_normal.config(bg="#dcdad5")
     check_todos_formatos.config(bg="#dcdad5")
     check_grepable.config(bg="#dcdad5")
     check_xml.config(bg="#dcdad5")
 
+    label_descripcion_script.config(bg="#dcdad5")
+    label_script.config(bg="#dcdad5")
+
     label_nombre_archivo.config(bg="#dcdad5")
 
 
     # Cambiar el estilo de los widgets en cada pestaña
-    for tab in [tab_descubrimiento_red, tab_tecnica_escaneo, tab_opciones_servicios_y_version, tab_puertos]:
+    for tab in [tab_descubrimiento_red, tab_tecnica_escaneo, tab_opciones_servicios_y_version, tab_puertos, tab_evasion, tab_scripts, tab_otras_opciones]:
         for widget in tab.winfo_children():
             widget.config(bg="#dcdad5")
             for child in widget.winfo_children():
-                if isinstance(child, (tk.Radiobutton, tk.Checkbutton, tk.Label)):
+                if isinstance(child, (tk.Radiobutton, tk.Checkbutton, tk.Label, tk.Scale)):
                     child.config(bg="#dcdad5")
 
     # Configurar el estilo para las pestañas del ttk.Notebook
@@ -106,6 +115,12 @@ def modo_oscuro():
     check_T.config(bg="#dcdad5")
     check_O.config(bg="#dcdad5")
     check_f.config(bg="#dcdad5")
+    check_sC.config(bg="#dcdad5")
+    check_script_especifico.config(bg="#dcdad5")
+    check_verbosidad_1.config(bg="#dcdad5")
+    check_verbosidad_2.config(bg="#dcdad5")
+    scale_nivel_depuracion.config(bg="#dcdad5")
+
 
     # Cambiar el estilo de las etiquetas
     etiqueta_casilla_ip.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
@@ -251,9 +266,11 @@ def actualizar_consulta_nmap(*args):
     if es_direccion_o_red_o_dominio_valido(ip_valor):
         entrada_texto_ip.config(bg='#009933')  # Fondo verde para entrada válida
         # Continuar con la actualización de la consulta si la entrada es válida
-
     else:
         entrada_texto_ip.config(bg='#ff4d4d')  # Fondo rojo para entrada inválida
+
+    if ip_valor == "":
+        entrada_texto_ip.config(bg='white')
     
     # Variables para los comandos
     ip_valor = entrada_texto_ip.get()
@@ -305,13 +322,39 @@ def actualizar_consulta_nmap(*args):
     elif puerto_seleccionado == "-F":
         consulta += " -F"
 
-    # Añadir el nivel de intensidad de -T si está seleccionado
+    if var_sC.get() == 1:
+        consulta += " -sC"
+    elif var_script_especifico.get() == 1 and var_script_seleccionado.get():
+        consulta += f" --script={var_script_seleccionado.get().rstrip()}"
+
+    # Agregar opciones de formato de salida
+    nombre_archivo = entrada_nombre_archivo.get().strip()
+    if nombre_archivo:
+        if var_normal.get() == 1:
+            consulta += f" -oN {nombre_archivo}.nmap"
+        if var_xml.get() == 1:
+            consulta += f" -oX {nombre_archivo}.xml"
+        if var_grepable.get() == 1:
+            consulta += f" -oG {nombre_archivo}.gnmap"
+        if var_todos_formatos.get() == 1:
+            consulta += f" -oA {nombre_archivo}"
 
 
     consulta += f" {ip_valor}"
 
+    # Agregar opciones de verbosidad o depuración si están seleccionadas
+    if var_verbosidad_1.get() == 1:
+        consulta += " -v"
+    elif var_verbosidad_2.get() == 1:
+        consulta += " -vv"
+    if var_depuracion.get() == 1:
+        consulta += " -d"
+
+
     cuadro_texto_consulta_generada.insert(tk.END, consulta)
     cuadro_texto_consulta_generada.config(state=tk.DISABLED)
+
+    print(consulta)
 
 
 def copiar_al_portapapeles():
@@ -325,6 +368,7 @@ def limpiar_texto_consulta():
     cuadro_texto_consulta_generada.config(state=tk.DISABLED)
     opcion_seleccionada_descubrimiento_red.set(None)
     opcion_seleccionada_tecnica_escaneo.set(None)
+    entrada_nombre_archivo.delete("0", "end")
     entrada_texto_ip.delete("0", "end")
     entrada_texto_ip.config(bg="white")
     var_sV.set(0)
@@ -333,7 +377,30 @@ def limpiar_texto_consulta():
     var_f.set(0)
     var_T.set(0)
     opcion_seleccionada_puertos.set(0)
+    var_script_seleccionado.set("")
+    var_script_especifico.set(0)
+    var_sC.set(0)
+    check_script_especifico.config(state=tk.NORMAL)
+    check_sC.config(state=tk.NORMAL)
+    combobox_scripts.config(state=tk.NORMAL)
+    var_verbosidad_1.set(0)
+    var_verbosidad_2.set(0)
+    var_depuracion.set(0)
+    var_ipv6.set(0)
+    check_verbosidad_1.config(state=tk.NORMAL)
+    check_verbosidad_2.config(state=tk.NORMAL)
+    check_grepable.config(state=tk.NORMAL)
+    check_normal.config(state=tk.NORMAL)
+    check_todos_formatos.config(state=tk.NORMAL)
+    check_xml.config(state=tk.NORMAL)
+    var_grepable.set(0)
+    var_normal.set(0)
+    var_xml.set(0)
+    var_todos_formatos.set(0)
 
+
+
+    actualizar_consulta_nmap()
 
 def actualizar_puertos(*args):
 
@@ -517,10 +584,65 @@ seccion_resultado_consulta.grid(row=0, column=0, sticky="nsew", padx=10, pady=10
 resultado_nmap = tk.Text(seccion_resultado_consulta, bg="black")
 resultado_nmap.pack(fill=tk.BOTH, expand=True)
 
+
+
+
+def validar_nombre_archivo(event):
+    nombre_archivo = entrada_nombre_archivo.get().strip()
+    patron = re.compile(r'^[a-zA-Z0-9_.-]+$')  # Expresión regular para validar el nombre del archivo
+
+    if patron.match(nombre_archivo):
+        entrada_nombre_archivo.config(bg='#009933')  # Fondo blanco para entrada válida o vacía
+    else:
+        entrada_nombre_archivo.config(bg='#ff4d4d')  # Fondo rojo para entrada inválida
+    if nombre_archivo == "":
+        entrada_nombre_archivo.config(bg='white')
+
+
+    actualizar_consulta_nmap()  # Actualizar la consulta de Nmap
+
+def actualizar_formato_salida():
+    # Comprobar si algún check de formato de salida está seleccionado
+    algun_formato_seleccionado = var_normal.get() == 1 or var_xml.get() == 1 or var_grepable.get() == 1 or var_todos_formatos.get() == 1
+
+    # Habilitar o deshabilitar la entrada del nombre del archivo
+    if algun_formato_seleccionado:
+        entrada_nombre_archivo.config(state=tk.NORMAL)
+    else:
+        entrada_nombre_archivo.config(state=tk.DISABLED)
+        entrada_nombre_archivo.delete(0, tk.END)  # Opcional: Limpiar la entrada si se deseleccionan todos los formatos
+
+    # Si se selecciona -oA, desactiva los demás formatos
+    if var_todos_formatos.get() == 1:
+        var_normal.set(0)
+        var_xml.set(0)
+        var_grepable.set(0)
+        check_normal.config(state=tk.DISABLED)
+        check_xml.config(state=tk.DISABLED)
+        check_grepable.config(state=tk.DISABLED)
+    else:
+        check_normal.config(state=tk.NORMAL)
+        check_xml.config(state=tk.NORMAL)
+        check_grepable.config(state=tk.NORMAL)
+
+        # Desactivar -oA si se selecciona otro formato
+        if algun_formato_seleccionado:
+            var_todos_formatos.set(0)
+            check_todos_formatos.config(state=tk.DISABLED)
+        else:
+            check_todos_formatos.config(state=tk.NORMAL)
+
+    actualizar_consulta_nmap()
+
+
+var_normal = tk.IntVar(value=0)
+var_xml = tk.IntVar(value=0)
+var_grepable = tk.IntVar(value=0)
+var_todos_formatos = tk.IntVar(value=0)
+
 # Sección salida de resultados
 seccion_exportar_resultados = tk.LabelFrame(marco_derecho, padx=10, pady=10, text="Exportar resultado")
 seccion_exportar_resultados.grid(row=1, column=0, sticky="ew", padx=10, pady=10)
-
 
 # Configurar el grid de seccion_exportar_resultados para que expanda el contenedor principal solo horizontalmente
 seccion_exportar_resultados.grid_rowconfigure(0, weight=0)
@@ -538,25 +660,49 @@ marco_entrada_texto_nombre_salida_archivo.pack(side=tk.LEFT, padx=5, pady=5)
 label_nombre_archivo = tk.Label(marco_entrada_texto_nombre_salida_archivo, text="Nombre de archivo")
 label_nombre_archivo.pack()
 
-entrada_nombre_archivo = tk.Entry(marco_entrada_texto_nombre_salida_archivo)
+entrada_nombre_archivo = tk.Entry(marco_entrada_texto_nombre_salida_archivo, state=tk.DISABLED)
 entrada_nombre_archivo.pack()
+entrada_nombre_archivo.bind('<KeyRelease>', lambda event: [actualizar_consulta_nmap(), validar_nombre_archivo(event)])
 
 # Sub-Frame para los checkbuttons
 contenedor_checkbuttons_exportar_resultados = tk.Frame(contenedor_principal_exportar)
 contenedor_checkbuttons_exportar_resultados.pack(side=tk.LEFT, padx=5, pady=5)
 
+
 # Checkbuttons
-check_normal = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="Normal")
+check_normal = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="Normal", variable=var_normal, command=actualizar_formato_salida)
 check_normal.grid(row=0, column=0, sticky="w")
 
-check_xml = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oX --> XML")
+check_xml = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oX --> XML", variable=var_xml, command=actualizar_formato_salida)
 check_xml.grid(row=0, column=1, sticky="w")
 
-check_grepable = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oG --> Greppable")
+check_grepable = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oG --> Greppable", variable=var_grepable, command=actualizar_formato_salida)
 check_grepable.grid(row=1, column=0, sticky="w")
 
-check_todos_formatos = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oA --> Todos los formatos")
+check_todos_formatos = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oA --> Todos los formatos", variable=var_todos_formatos, command=actualizar_formato_salida)
 check_todos_formatos.grid(row=1, column=1, sticky="w")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -648,10 +794,6 @@ notebook.add(tab_evasion, text="Evasión")
 notebook.add(tab_scripts, text="Scripts")
 notebook.add(tab_otras_opciones, text="Otras Opciones")
 
-# Suponiendo que 'notebook' es tu ttk.Notebook y 'tab_x' son las pestañas que quieres deshabilitar
-#notebook.tab(tab_evasion, state='disabled')
-notebook.tab(tab_scripts, state='disabled')
-notebook.tab(tab_otras_opciones, state='disabled')
 
 
 
@@ -840,22 +982,6 @@ opciones_evasion = {
     "--data-length": "Añadir datos aleatorios a los paquetes enviados"
 }
 
-
-
-var_f = tk.IntVar(value=0)
-
-# Crear Checkbuttons y Labels para Evasión
-# Crear Checkbutton y Label para -f
-contenedor_f = tk.Frame(tab_evasion, padx=3, pady=3)
-contenedor_f.pack(fill=tk.X)
-check_f = tk.Checkbutton(contenedor_f, text="-f", variable=var_f, command=actualizar_consulta_nmap)
-check_f.pack(side=tk.LEFT)
-label_f = tk.Label(contenedor_f, text=f"--> {opciones_evasion['-f']}")
-label_f.pack(side=tk.LEFT)
-
-
-
-
 # Crear Checkbutton y Label para -T
 contenedor_T = tk.Frame(tab_evasion, padx=3, pady=3)
 contenedor_T.pack(fill=tk.X)
@@ -876,49 +1002,180 @@ scale_nivel_intensidad_T.config(state=tk.DISABLED)
 T_valor_intensidad = tk.Label(contenedor_T, text="0")
 T_valor_intensidad.pack(side=tk.LEFT)
 
+var_f = tk.IntVar(value=0)
 
+# Crear Checkbuttons y Labels para Evasión
+# Crear Checkbutton y Label para -f
+contenedor_f = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_f.pack(fill=tk.X)
+check_f = tk.Checkbutton(contenedor_f, text="-f", variable=var_f, command=actualizar_consulta_nmap)
+check_f.pack(side=tk.LEFT)
+label_f = tk.Label(contenedor_f, text=f"--> {opciones_evasion['-f']}")
+label_f.pack(side=tk.LEFT)
+
+
+
+def actualizar_descripcion_script(event):
+    script_seleccionado = var_script_seleccionado.get()
+    descripcion = opciones_scripts.get(script_seleccionado, "")
+    label_descripcion_script.config(text=descripcion)
+
+    if combobox_scripts:
+        var_script_especifico.set(1)
+
+    actualizar_consulta_nmap()
+
+
+# Función para manejar la selección de scripts
+def seleccion_script(checkbutton_seleccionado):
+    if checkbutton_seleccionado == check_sC:
+        if var_sC.get() == 1:
+            # Si -sC está seleccionado, deshabilita la selección de script específico
+            check_script_especifico.config(state=tk.DISABLED)
+            combobox_scripts.set('')
+            label_descripcion_script.config(text='')
+            combobox_scripts.config(state=tk.DISABLED)
+        else:
+            # Si -sC se deselecciona, habilita la selección de script específico
+            check_script_especifico.config(state=tk.NORMAL)
+            combobox_scripts.config(state=tk.NORMAL)
+
+        actualizar_consulta_nmap()
+
+    elif checkbutton_seleccionado == check_script_especifico:
+        if var_script_especifico.get() == 1:
+            # Si se selecciona un script específico, deshabilita -sC
+            check_sC.config(state=tk.DISABLED)
+        else:
+            # Si se deselecciona un script específico, habilita -sC
+            check_sC.config(state=tk.NORMAL)
+
+        actualizar_consulta_nmap()
+
+
+# Crear una variable de control para el Combobox
+var_script_seleccionado = tk.StringVar()
 
 
 # Diccionario con opciones y descripciones para Scripts
 opciones_scripts = {
-    "-sC": "Ejecutar scripts por defecto"
+    "auth": "scripts relacionados con la autenticación",
+    "broadcast": "descubre hosts no listados",
+    "brute": "intenta adivinar contraseñas",
+    "discovery": "recolecta información sobre los hosts",
+    "dos": "prueba vulnerabilidades de denegación de servicio",
+    "exploit": "intenta explotar vulnerabilidades conocidas",
+    "external": "interactúa con servicios externos",
+    "fuzzer": "prueba aplicaciones con entradas inesperadas",
+    "intrusive": "scripts que podrían alertar a los admins de red",
+    "malware": "busca indicadores de malware",
+    "safe": "scripts que no son considerados intrusivos",
+    "version":  "cripts que intentan determinar información de versión de los servicios",
+    "vuln": "revisa vulnerabilidades conocidas"
 }
 
-# Crear Checkbuttons y Labels para Scripts
-for comando, descripcion in opciones_scripts.items():
-    contenedor = tk.Frame(tab_scripts, padx=3, pady=3)
-    contenedor.pack(fill=tk.X)
 
-    var = tk.IntVar(value=0)
-    check = tk.Checkbutton(contenedor, text=comando, variable=var)
-    check.pack(side=tk.LEFT)
+# Contenedor para la opción -sC (Scripts por defecto)
+contenedor_script_por_defecto = tk.Frame(tab_scripts)
+contenedor_script_por_defecto.pack(fill=tk.X, padx=3, pady=3)
 
-    label = tk.Label(contenedor, text=f"--> {descripcion}")
-    label.pack(side=tk.LEFT)
+# Checkbutton para -sC
+var_sC = tk.IntVar(value=0)
+check_sC = tk.Checkbutton(contenedor_script_por_defecto, text="-sC (Scripts por defecto)", variable=var_sC, command=lambda: seleccion_script(check_sC))
+check_sC.pack(side=tk.LEFT)
+
+# Contenedor para la selección de script específico
+contenedor_script_especifico = tk.Frame(tab_scripts)
+contenedor_script_especifico.pack(fill=tk.X, padx=3, pady=3)
+
+# Checkbutton para activar la selección de script específico
+var_script_especifico = tk.IntVar(value=0)
+check_script_especifico = tk.Checkbutton(contenedor_script_especifico, text="", variable=var_script_especifico, command=lambda: seleccion_script(check_script_especifico))
+check_script_especifico.pack(side=tk.LEFT)
+
+# Label y Combobox para scripts específicos
+label_script = tk.Label(contenedor_script_especifico, text="Script específico:")
+label_script.pack(side=tk.LEFT, padx=(5,0))
+
+combobox_scripts = ttk.Combobox(contenedor_script_especifico, textvariable=var_script_seleccionado, values=list(opciones_scripts.keys()), state="readonly", width=20)
+combobox_scripts.pack(side=tk.LEFT, padx=(5,0))
+combobox_scripts.bind("<<ComboboxSelected>>", actualizar_descripcion_script)
+
+# Label para mostrar la descripción del script seleccionado
+label_descripcion_script = tk.Label(contenedor_script_especifico, text="")
+label_descripcion_script.pack(side=tk.LEFT, padx=(5,0))
 
 
 
+
+# Variables globales para las opciones
+var_verbosidad_1 = tk.IntVar(value=0)
+var_verbosidad_2 = tk.IntVar(value=0)
+var_depuracion = tk.IntVar(value=0)
+var_nivel_depuracion = tk.IntVar(value=0)  # Nivel de depuración
+var_ipv6 = tk.IntVar(value=0)
+
+# Función para manejar la exclusión mutua de -v, -vv y -d
+def manejar_exclusion_mutua_verbosidad():
+    if var_verbosidad_1.get() == 1:
+        var_verbosidad_2.set(0)
+        check_verbosidad_2.config(state=tk.DISABLED)
+    else:
+        check_verbosidad_2.config(state=tk.NORMAL)
+
+    if var_verbosidad_2.get() == 1:
+        var_verbosidad_1.set(0)
+        check_verbosidad_1.config(state=tk.DISABLED)
+    else:
+        check_verbosidad_1.config(state=tk.NORMAL)
+
+    # Habilitar o deshabilitar la escala de -d
+    if var_depuracion.get() == 1:
+        scale_nivel_depuracion.config(state=tk.NORMAL)
+    else:
+        scale_nivel_depuracion.config(state=tk.DISABLED)
+        var_nivel_depuracion.set(0)  # Resetear el valor de la escala
+
+    actualizar_consulta_nmap()
 
 # Diccionario con opciones y descripciones para Otras Opciones
 opciones_otras = {
-    "-v": "Nivel de verbosidad 1",
-    "-vv": "Nivel de verbosidad 2"
+    "-v": ("Nivel de verbosidad 1: muestra información sobre el escaneo", var_verbosidad_1),
+    "-vv": ("Nivel de verbosidad 2: muestra aun más información sobre el escaneo que -v", var_verbosidad_2),
+    "-d": ("Nivel de depuración: más verbosidad aun que -vv. Intensidad de 0 (menos detalle) a 9 (máximo detalle)", var_depuracion),
+    "-6": ("Escanea IPv6", var_ipv6)
 }
 
-# Crear Checkbuttons y Labels para Otras Opciones
-for comando, descripcion in opciones_otras.items():
-    contenedor = tk.Frame(tab_otras_opciones, padx=3, pady=3)
-    contenedor.pack(fill=tk.X)
+# Crear Checkbuttons, Labels y Scale para Otras Opciones
+check_verbosidad_1 = None
+check_verbosidad_2 = None
+scale_nivel_depuracion = None
 
-    var = tk.IntVar(value=0)
-    check = tk.Checkbutton(contenedor, text=comando, variable=var)
+for comando, (descripcion, variable) in opciones_otras.items():
+    contenedor_otras_opciones = tk.Frame(tab_otras_opciones, padx=3, pady=3)
+    contenedor_otras_opciones.pack(fill=tk.X)
+
+    check = tk.Checkbutton(contenedor_otras_opciones, text=comando, variable=variable, command=manejar_exclusion_mutua_verbosidad)
     check.pack(side=tk.LEFT)
 
-    label = tk.Label(contenedor, text=f"--> {descripcion}")
+    if comando == "-v":
+        check_verbosidad_1 = check
+    elif comando == "-vv":
+        check_verbosidad_2 = check
+
+
+    label = tk.Label(contenedor_otras_opciones, text=f"--> {descripcion}")
     label.pack(side=tk.LEFT)
 
-
+    if comando == "-d":
+        # Crear un Scale (deslizador) para el nivel de depuración
+        scale_nivel_depuracion = tk.Scale(contenedor_otras_opciones, showvalue=False, from_=0, to=9, orient=tk.HORIZONTAL, variable=var_nivel_depuracion, command=actualizar_consulta_nmap)
+        scale_nivel_depuracion.pack(side=tk.LEFT)
+        scale_nivel_depuracion.config(state=tk.DISABLED)
 
 
 # Ejecución de la ventana principal
-ventana_principal.mainloop()
+try:
+    ventana_principal.mainloop()
+except KeyboardInterrupt:
+    pass
