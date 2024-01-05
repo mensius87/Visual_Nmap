@@ -2,7 +2,7 @@
 <br>
 
 <p align="center">
-  <img src="images/Visual_Nmap_icono.ico" alt="Ejemplo de imagen">
+  <img src="images/Visual_Nmap_icono.png" alt="Ejemplo de imagen">
 </p><br><br>
 
 <p>Haz clic en el GIF para verlo ampliado y con detalle</p>
