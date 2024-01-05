@@ -57,18 +57,19 @@ Para instalar y ejecutar este proyecto en tu máquina local, sigue los siguiente
 
 ## :rocket: Ejecución
 
+De momento solo disponible en sistemas Linux.
+
 Para iniciar la aplicación, asegúrate de tener Python y Tkinter instalados en tu sistema y ejecuta:
 
 
 ```bash
-python visual_nmap.py
+python3 visual_nmap.py
  ```
 <br><br>
 
 
 ## :book: Guía de Uso
 <br><br>
-
 
 
 

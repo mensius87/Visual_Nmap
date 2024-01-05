@@ -1,3 +1,11 @@
+## [1.6] - 06/01/2024
+### Añadido
+- Se añade sección histórico de consultas:
+    - Visualización de las consultas anteriores en una lista donde se ve el número de consulta, la consulta en sí, la fecha y hora.
+    - Próximamente se espera añadir la visualización del resultado de la consulta seleccionada en este histórico para evitar tener que lanzar otro escaneo o abrir archivos externos. 
+- Se añade funcionalidad en Windows (en pruebas)
+
+
 ## [1.5] - 04/01/2024
 ### Añadido
 - Sección vulnerabilidades es ahora funcional. Permite elegir el modo predeterminado o una categoría específica de vulnerabilidad a través de una lista desplegable.
@@ -5,8 +13,8 @@
 - Sección exportar resultado ahora es funcional:
     - Permite exportar los resultados de la búsqueda a los diversos formatos de archivo más habituales
     - El cuadro de entrada del nombre de archivo se muestra con fondo rojo si no es un nombre de archivo válido
-- Correciones menores de código y erratas en menús
-- Ligera optimizacion de código
+- Correcciones menores de código y erratas en menús
+- Ligera optimización de código
 
 
 ## [1.4] - 03/01/2024
@@ -14,7 +22,7 @@
 - Sección evasión ahora es funcional
 - La escala de -T ahora es funcional y se puede elegir el nivel de 0 a 5 mediante una barra de desplazamiento horizontal
 - La entrada de ip, rango de ip's y o red ahora también admite dominios con su correspondiente validación
-- Boton escanear empiezar a tener funcionalidad: realiza el escaneo y muestra el resutlado en la pantalla de la derecha: funcional en linux y en pruebas en windows
+- Botón escanear empieza a tener funcionalidad: realiza el escaneo y muestra el resultado en la pantalla de la derecha: funcional en Linux
 - Sección sobre el autor mejorada
 
 
@@ -23,14 +31,14 @@
 - Icono de programa
 - Validaciones a entrada de puertos:
     - Entrada de puerto único: ahora si no se introduce un número válido (entre 1 y 65535) el fondo cambia a rojo
-    - Entrada de rangos de puertos: ahora ahora solo se permiten números validos (entre 1 y 65535) y el de la primera casilla debe de ser menor al de la segunda. Si todo es correcto la casilla se pone en verde y, si no, en rojo
-    - Entra de puertos específicos: ahora solo permite números separados por comas siempre que sean válidos (entre 1 y 65535) y no estén repetidos. Si todo es correcto, la caslilla se pondrá verde, si no, en rojo
+    - Entrada de rangos de puertos: ahora solo se permiten números validos (entre 1 y 65535) y el de la primera casilla debe de ser menor al de la segunda. Si todo es correcto la casilla se pone en verde y, si no, en rojo
+    - Entra de puertos específicos: ahora solo permite números separados por comas siempre que sean válidos (entre 1 y 65535) y no estén repetidos. Si todo es correcto, la casilla se pondrá verde, si no, en rojo
 - Escalas en las opciones -sV y -T:
-    - -sV: se habilita escala del 0 al 9 para activar el modo "--version-intensity" en en nivel elegido. Esta opción se activa al mover la escala.
+    - -sV: se habilita escala del 0 al 9 para activar el modo "--version-intensity" en nivel elegido. Esta opción se activa al mover la escala.
     - -T: se habilita escala de 0 a 5 aun sin funcionalidad
 - Secciones: evasión, scripts y "otras opciones" (todas ellas están bloqueadas por no ser funcionales hasta versiones posteriores)
 ### Cambiado
-- Se han reestrucurado algunos comandos moviéndolos a secciones más acordes
+- Se han reestructurado algunos comandos moviéndolos a secciones más acordes
 
 
 ## [1.2] - 01/01/2024
@@ -55,10 +63,10 @@
 - Lanzamiento inicial del proyecto.
 - Función introducir ip o red
 - Opciones de descubrimiento de red funcionando
-- Opciones de ténicas de escaneo funcionando
+- Opciones de técnicas de escaneo funcionando
 - Algunas opciones de búsqueda de servicios y versiones implementadas
-- Cuadro para visualiar la consulta creada antes de copiarla o lanzarla
-- Botón de copiar consulta al portapaples funcional
+- Cuadro para visualizar la consulta creada antes de copiarla o lanzarla
+- Botón de copiar consulta al portapapeles funcional
 - Botón de limpiar consulta para empezar a crearla de nuevo funcional
 - Otras implementaciones gráficas aun no funcionales
 - Usable con limitaciones a causa de no estar implementadas aun todas las opciones habituales

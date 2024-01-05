@@ -1,6 +1,7 @@
+import tkinter
 import tkinter as tk
 from tkinter import ttk, Menu, messagebox, font
-import os, sys, json, ipaddress, pyperclip, subprocess
+import os, sys, json, ipaddress, pyperclip, platform, subprocess, re, datetime
 
 def mostrar_sobre_el_autor():
     ventana_sobre_autor = tk.Toplevel(pady=10)
@@ -42,11 +43,13 @@ def mostrar_sobre_el_autor():
 def salir():
     ventana_principal.destroy()
 
+
 # Colores para el modo oscuro
 colores_modo_oscuro = {
     "fondo": "#333333",  # Color de fondo oscuro
     "texto": "#FFFFFF",  # Color de texto claro
 }
+
 
 def modo_oscuro():
     # Establecer el fondo de la ventana principal y los frames
@@ -61,12 +64,11 @@ def modo_oscuro():
     sV_valor_intensidad.config(bg="#dcdad5")
     scale_nivel_intensidad.config(bg="#dcdad5")
 
-
     seccion_resultado_consulta.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
     seccion_exportar_resultados.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
     seccion_consulta_generada.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
     seccion_encabezado_opciones_avanzadas.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
-
+    seccion_historial_consultas.config(bg="#dcdad5")
 
     contenedor_general_consulta_generada.config(bg="#dcdad5")
     contenedor_botones.config(bg="#dcdad5")
@@ -80,6 +82,21 @@ def modo_oscuro():
     contenedor_script_especifico.config(bg="#dcdad5")
     contenedor_script_por_defecto.config(bg="#dcdad5")
     contenedor_otras_opciones.config(bg="#dcdad5")
+    contenedor_general_historico.config(bg="#dcdad5")
+    contenedor_tabla_historico.config(bg="#dcdad5")
+
+    # Cambiar los estilos para la sección de historial de consultas
+    seccion_historial_consultas.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
+    contenedor_general_historico.config(bg=colores_modo_oscuro["fondo"])
+    contenedor_tabla_historico.config(bg=colores_modo_oscuro["fondo"])
+
+    # Cambiar el estilo del Treeview (historial_consultas)
+    style = ttk.Style()
+    style.configure("Treeview", background=colores_modo_oscuro["fondo"], fieldbackground=colores_modo_oscuro["fondo"], foreground=colores_modo_oscuro["texto"])
+    style.configure("Treeview.Heading", background=colores_modo_oscuro["fondo"], foreground=colores_modo_oscuro["texto"])
+
+    # Cambiar el color del fondo y del texto de los elementos seleccionados
+    style.map("Treeview", background=[('selected', '#0078D7')], foreground=[('selected', 'white')])
 
     check_verbosidad_1.config(bg="#dcdad5")
     check_verbosidad_2.config(bg="#dcdad5")
@@ -92,7 +109,6 @@ def modo_oscuro():
     label_script.config(bg="#dcdad5")
 
     label_nombre_archivo.config(bg="#dcdad5")
-
 
     # Cambiar el estilo de los widgets en cada pestaña
     for tab in [tab_descubrimiento_red, tab_tecnica_escaneo, tab_opciones_servicios_y_version, tab_puertos, tab_evasion, tab_scripts, tab_otras_opciones]:
@@ -121,7 +137,6 @@ def modo_oscuro():
     check_verbosidad_2.config(bg="#dcdad5")
     scale_nivel_depuracion.config(bg="#dcdad5")
 
-
     # Cambiar el estilo de las etiquetas
     etiqueta_casilla_ip.config(bg=colores_modo_oscuro["fondo"], fg=colores_modo_oscuro["texto"])
     label_nombre_archivo.config(bg="#dcdad5")
@@ -140,7 +155,6 @@ def modo_claro():
         ventana_principal.destroy()
         os.execl(sys.executable, sys.executable, *sys.argv)
 
-import re
 
 def es_dominio_valido(dominio):
     patron_dominio_con_www = re.compile(r'^www\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,6}$')
@@ -184,7 +198,6 @@ def es_direccion_o_red_o_dominio_valido(direccion):
                 return es_dominio_valido(direccion)
 
 
-
 def manejar_incompatibilidad_A_O_sV():
     # Deshabilitar -O y -sV si -A está seleccionado
     if var_A.get() == 1:
@@ -209,28 +222,27 @@ def manejar_incompatibilidad_A_O_sV():
             check_A.config(state=tk.NORMAL)
 
 
-
+sV_escala_usada = False
 def manejar_estado_nivel_intensidad_sV():
+    global sV_escala_usada  # Asegúrate de utilizar la variable global
 
-    # Habilitar o deshabilitar el Scale basado en el estado del Checkbutton -sV
     if var_sV.get() == 1:
         scale_nivel_intensidad.config(state=tk.NORMAL)
+        # No cambiar sV_escala_usada aquí para mantener su estado anterior
     else:
         scale_nivel_intensidad.config(state=tk.DISABLED)
-        sV_escala_usada = False  # Restablecer la bandera a False
+        sV_escala_usada = False  # Restablecer la bandera cuando -sV se desactiva
 
-
-sV_escala_usada = False
 
 def si_escala_movida_sV(val):
     global sV_escala_usada
-    if not sV_escala_usada:
-        sV_escala_usada = True
-    if var_sV.get() == 0:
-        sV_escala_usada = False
+    sV_escala_usada = True  # Establecer la bandera en True cuando se mueve la escala
 
-    sV_valor_intensidad.config(text=str(val))
+    # Actualizar el valor de intensidad solo si la escala ha sido usada
+    if sV_escala_usada:
+        sV_valor_intensidad.config(text=str(val))
     actualizar_consulta_nmap()
+
 
 T_escala_usada = False
 def manejar_estado_nivel_intensidad_T():
@@ -252,114 +264,34 @@ def si_escala_movida_T(val):
     actualizar_consulta_nmap()
 
 
+depuracion_escala_usada = False
+def manejar_estado_nivel_intensidad_d():
 
-# Función para actualizar la consulta de Nmap
-def actualizar_consulta_nmap(*args):
-    cuadro_texto_consulta_generada.config(state=tk.NORMAL)
-    cuadro_texto_consulta_generada.delete('1.0', tk.END)
-
-    #print(opcion_seleccionada_puertos.get())
-    #print(entrada_puerto.get())
-
-    ip_valor = entrada_texto_ip.get()
-
-    if es_direccion_o_red_o_dominio_valido(ip_valor):
-        entrada_texto_ip.config(bg='#009933')  # Fondo verde para entrada válida
-        # Continuar con la actualización de la consulta si la entrada es válida
+    if var_T.get() == 1:
+        scale_nivel_depuracion.config(state=tk.NORMAL)
     else:
-        entrada_texto_ip.config(bg='#ff4d4d')  # Fondo rojo para entrada inválida
-
-    if ip_valor == "":
-        entrada_texto_ip.config(bg='white')
-    
-    # Variables para los comandos
-    ip_valor = entrada_texto_ip.get()
-    descubrimiento_red = opcion_seleccionada_descubrimiento_red.get()
-    tecnicas_escaneo = opcion_seleccionada_tecnica_escaneo.get()
-
-    consulta = "nmap"  # Texto base
-
-    if descubrimiento_red != "None":
-        consulta += f" {descubrimiento_red}"
-
-    if tecnicas_escaneo != "None":
-        consulta += f" {tecnicas_escaneo}"
-
-    # Verificar el estado de cada Checkbutton y añadir a la consulta
-    manejar_estado_nivel_intensidad_sV()
-    nivel_instensidad_sV = var_nivel_intensidad.get()
-
-    if var_sV.get() == 1:
-        consulta += " -sV"
-        if sV_escala_usada == True:
-            consulta += f" --version-intensity {nivel_instensidad_sV}"
-    if var_A.get() == 1:
-        consulta += " -A"
-    if var_O.get() == 1:
-        consulta += " -O"
-    if var_f.get() == 1:
-        consulta += " -f"
-    if var_T.get() == 1:
-        consulta += " -T"
-    if var_T.get() == 1:
-        nivel_intensidad_T = var_nivel_intensidad_T.get()
-        consulta += f"{nivel_intensidad_T}"
-
-    # Añadir la opción de puertos
-    puerto_seleccionado = opcion_seleccionada_puertos.get()
-    if puerto_seleccionado == "-p" and entrada_puerto.get():
-        consulta += f" -p{entrada_puerto.get()}"
-    elif puerto_seleccionado == "-p rango" and (entrada_puerto_inicio.get() and entrada_puerto_fin.get()):
-        consulta += f" -p{entrada_puerto_inicio.get()}-{entrada_puerto_fin.get()}"
-    elif puerto_seleccionado == "-p-":
-        consulta += " -p-"
-    elif puerto_seleccionado == "-p específicos" and entrada_puertos_especificos.get():
-        if entrada_puertos_especificos.get().endswith(","):
-            entrada_puertos_especificos_sin_coma_final = entrada_puertos_especificos.get()
-            consulta += f" -p{entrada_puertos_especificos_sin_coma_final[:-1]}"
-        else:
-            consulta += f" -p{entrada_puertos_especificos.get()}"
-    elif puerto_seleccionado == "-F":
-        consulta += " -F"
-
-    if var_sC.get() == 1:
-        consulta += " -sC"
-    elif var_script_especifico.get() == 1 and var_script_seleccionado.get():
-        consulta += f" --script={var_script_seleccionado.get().rstrip()}"
-
-    # Agregar opciones de formato de salida
-    nombre_archivo = entrada_nombre_archivo.get().strip()
-    if nombre_archivo:
-        if var_normal.get() == 1:
-            consulta += f" -oN {nombre_archivo}.nmap"
-        if var_xml.get() == 1:
-            consulta += f" -oX {nombre_archivo}.xml"
-        if var_grepable.get() == 1:
-            consulta += f" -oG {nombre_archivo}.gnmap"
-        if var_todos_formatos.get() == 1:
-            consulta += f" -oA {nombre_archivo}"
+        scale_nivel_depuracion.config(state=tk.DISABLED)
 
 
-    consulta += f" {ip_valor}"
+depuracion_valor_intensidad = None
 
-    # Agregar opciones de verbosidad o depuración si están seleccionadas
-    if var_verbosidad_1.get() == 1:
-        consulta += " -v"
-    elif var_verbosidad_2.get() == 1:
-        consulta += " -vv"
-    if var_depuracion.get() == 1:
-        consulta += " -d"
+def si_escaca_movida_d(val):
+    global depuracion_escala_usada
+    if not depuracion_escala_usada:
+        depuracion_escala_usada = True
+    if var_depuracion.get() == 0:
+        depuracion_escala_usada = False
 
+    # Actualizar el texto del label con el valor de la escala
+    depuracion_valor_intensidad.config(text=str(val))
+    actualizar_consulta_nmap()
 
-    cuadro_texto_consulta_generada.insert(tk.END, consulta)
-    cuadro_texto_consulta_generada.config(state=tk.DISABLED)
-
-    print(consulta)
 
 
 def copiar_al_portapapeles():
     texto_a_copiar= cuadro_texto_consulta_generada.get("1.0", "end-1c")  # Obtiene el texto del área de consulta
     pyperclip.copy(texto_a_copiar)  # Copia el texto al portapapeles
+
 
 def limpiar_texto_consulta():
     cuadro_texto_consulta_generada.config(state=tk.NORMAL)
@@ -398,9 +330,8 @@ def limpiar_texto_consulta():
     var_xml.set(0)
     var_todos_formatos.set(0)
 
-
-
     actualizar_consulta_nmap()
+
 
 def actualizar_puertos(*args):
 
@@ -502,35 +433,181 @@ def validar_puertos_especificos(event):
 
     actualizar_consulta_nmap()
 
+
+contador_consultas = 0
+
 def ejecutar_escaneo_nmap():
-    # Obtener el comando de Nmap
-    # Ejemplo: Si Nmap está instalado en "C:\Program Files\Nmap\nmap.exe"
-    ruta_nmap = "C:\\Program Files (x86)\\Nmap\\nmap.exe"
-    comando_nmap = f"{ruta_nmap} {cuadro_texto_consulta_generada.get('1.0', tk.END).strip()}"
+    global contador_consultas  # Referencia a la variable global para el contador de consultas
 
-    if comando_nmap:
+    # Comando base de Nmap
+    comando_nmap_base = "nmap"
+    if platform.system() == "Windows":
+        comando_nmap_base = "C:\\Nmap\\nmap.exe"
+
+    # Obtener la consulta del cuadro de texto
+    consulta_nmap = cuadro_texto_consulta_generada.get('1.0', tk.END).strip()
+
+    # Verificar si la consulta está vacía
+    if not consulta_nmap:
+        messagebox.showinfo("Información", "Introduce un comando de Nmap válido.")
+        return
+
+    # Construir el comando completo
+    comando_nmap = f" {consulta_nmap}"
+
+    # Obtener la fecha y hora actual
+    fecha_hora_actual = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    # Incrementar el contador de consultas para asignar un nuevo ID
+    contador_consultas += 1
+
+    try:
+        # Ejecutar el comando Nmap
+        resultado = subprocess.check_output(comando_nmap, shell=True, text=True, stderr=subprocess.STDOUT)
+        resultado_nmap.config(state=tk.NORMAL)
+        resultado_nmap.delete('1.0', tk.END)
+        resultado_nmap.insert('1.0', resultado)
+        resultado_nmap.config(state=tk.DISABLED, fg='green')
+
+        # Agregar la consulta y el resultado al historial
+        historial_consultas.insert("", "end", values=(contador_consultas, comando_nmap, fecha_hora_actual))
+    except subprocess.CalledProcessError as e:
+        messagebox.showerror("Error", f"Hubo un error al ejecutar Nmap:\n{e.output}")
+
+# Resto del código, incluyendo la definición de las variables y widgets de Tkinter...
+
+
+
+
+'''
+def ejecutar_escaneo_nmap():
+    comando_nmap = f"nmap {cuadro_texto_consulta_generada.get('1.0', tk.END).strip()}"
+
+    print("Ejecutando comando:", comando_nmap)  # Imprime para depurar
+
+    if comando_nmap.strip():
         try:
-            # Ejecutar el comando de Nmap
             resultado = subprocess.check_output(comando_nmap, shell=True, text=True, stderr=subprocess.STDOUT)
-
-            # Mostrar los resultados en el cuadro de texto
             resultado_nmap.config(state=tk.NORMAL)
             resultado_nmap.delete('1.0', tk.END)
             resultado_nmap.insert('1.0', resultado)
             resultado_nmap.config(state=tk.DISABLED, fg='green')
-
         except subprocess.CalledProcessError as e:
             messagebox.showerror("Error", f"Hubo un error al ejecutar Nmap:\n{e.output}")
     else:
         messagebox.showinfo("Información", "Introduce un comando de Nmap válido.")
+'''
 
+
+def actualizar_consulta_nmap(*args):
+    cuadro_texto_consulta_generada.config(state=tk.NORMAL)
+    cuadro_texto_consulta_generada.delete('1.0', tk.END)
+
+    ip_valor = entrada_texto_ip.get()
+
+    # Verifica si la dirección IP o red es válida
+    if not es_direccion_o_red_o_dominio_valido(ip_valor):
+        entrada_texto_ip.config(bg='#ff4d4d')  # Fondo rojo para entrada inválida
+
+    else:
+        entrada_texto_ip.config(bg='#009933')  # Fondo verde para entrada válida
+
+    if ip_valor == "" or ip_valor == None:
+        entrada_texto_ip.config(bg='white')
+
+    # Variables para los comandos
+    ip_valor = entrada_texto_ip.get()
+    descubrimiento_red = opcion_seleccionada_descubrimiento_red.get()
+    tecnicas_escaneo = opcion_seleccionada_tecnica_escaneo.get()
+
+    consulta = "nmap"  # Texto base
+
+    if descubrimiento_red != "None":
+        consulta += f" {descubrimiento_red}"
+
+    if tecnicas_escaneo != "None":
+        consulta += f" {tecnicas_escaneo}"
+
+    # Verificar el estado de cada Checkbutton y añadir a la consulta
+    manejar_estado_nivel_intensidad_sV()
+    nivel_instensidad_sV = var_nivel_intensidad.get()
+
+    if var_sV.get() == 1:
+        consulta += " -sV"
+        if sV_escala_usada:
+            consulta += f" --version-intensity {var_nivel_intensidad.get()}"
+
+    if var_A.get() == 1:
+        consulta += " -A"
+    if var_O.get() == 1:
+        consulta += " -O"
+    if var_f.get() == 1:
+        consulta += " -f"
+    if var_T.get() == 1:
+        consulta += " -T"
+    if var_T.get() == 1:
+        nivel_intensidad_T = var_nivel_intensidad_T.get()
+        consulta += f"{nivel_intensidad_T}"
+
+    # Añadir la opción de puertos
+    puerto_seleccionado = opcion_seleccionada_puertos.get()
+    if puerto_seleccionado == "-p" and entrada_puerto.get():
+        consulta += f" -p{entrada_puerto.get()}"
+    elif puerto_seleccionado == "-p rango" and (entrada_puerto_inicio.get() and entrada_puerto_fin.get()):
+        consulta += f" -p{entrada_puerto_inicio.get()}-{entrada_puerto_fin.get()}"
+    elif puerto_seleccionado == "-p-":
+        consulta += " -p-"
+    elif puerto_seleccionado == "-p específicos" and entrada_puertos_especificos.get():
+        if entrada_puertos_especificos.get().endswith(","):
+            entrada_puertos_especificos_sin_coma_final = entrada_puertos_especificos.get()
+            consulta += f" -p{entrada_puertos_especificos_sin_coma_final[:-1]}"
+        else:
+            consulta += f" -p{entrada_puertos_especificos.get()}"
+    elif puerto_seleccionado == "-F":
+        consulta += " -F"
+
+    if var_sC.get() == 1:
+        consulta += " -sC"
+    elif var_script_especifico.get() == 1 and var_script_seleccionado.get():
+        consulta += f" --script={var_script_seleccionado.get().rstrip()}"
+
+    if var_ipv6.get() == 1:
+        consulta += " -6"
+
+    # Agregar opciones de formato de salida
+    nombre_archivo = entrada_nombre_archivo.get().strip()
+    if nombre_archivo:
+        if var_normal.get() == 1:
+            consulta += f" -oN {nombre_archivo}.nmap"
+        if var_xml.get() == 1:
+            consulta += f" -oX {nombre_archivo}.xml"
+        if var_grepable.get() == 1:
+            consulta += f" -oG {nombre_archivo}.gnmap"
+        if var_todos_formatos.get() == 1:
+            consulta += f" -oA {nombre_archivo}"
+
+    consulta += f" {ip_valor}"
+
+    # Agregar opciones de verbosidad o depuración si están seleccionadas
+    if var_verbosidad_1.get() == 1:
+        consulta += " -v"
+    elif var_verbosidad_2.get() == 1:
+        consulta += " -vv"
+    if var_depuracion.get() == 1:
+        nivel_depuracion = var_nivel_depuracion.get()
+        consulta += f" -d{nivel_depuracion}"
+
+
+    cuadro_texto_consulta_generada.insert(tk.END, consulta)
+    cuadro_texto_consulta_generada.config(state=tk.DISABLED)
 
 
 # ventana principal
 ventana_principal = tk.Tk()
-ventana_principal.title("Visual Nmap v1.4 - Generador de consultas Nmap")
-ventana_principal.geometry("1500x600")
+ventana_principal.title("Visual Nmap v1.6 - Generador de consultas Nmap")
+ventana_principal.geometry("1500x665")
 ventana_principal.minsize(1600, 650)
+
 
 # Crear un objeto menú
 menu_bar = Menu(ventana_principal)
@@ -681,25 +758,6 @@ check_grepable.grid(row=1, column=0, sticky="w")
 
 check_todos_formatos = tk.Checkbutton(contenedor_checkbuttons_exportar_resultados, text="-oA --> Todos los formatos", variable=var_todos_formatos, command=actualizar_formato_salida)
 check_todos_formatos.grid(row=1, column=1, sticky="w")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -968,13 +1026,13 @@ for clave, descripcion in port_options.items():
 opcion_seleccionada_puertos.set(None)  # Establecer una opción por defecto
 
 
-
+# Sección evasión
 var_T = tk.IntVar(value=0)
 
 # Diccionario con opciones y descripciones para Evasión
 opciones_evasion = {
-    "-T": "Timing (velocidad del escaneo)",
-    "-f": "Utilizar técnicas de fragmentación",
+    "-T": "Timing (velocidad del escaneo): nivel sigiloso pero lento (0) y nivel rápido pero ruidoso (5)",
+    "-f": "técnicas de fragmentación en los paquetes de red, con el fin de eludir detectores y firewalls",
     "--mtu": "Especificar el MTU",
     "-D": "Usar hosts señuelo",
     "-S": "Usar una dirección IP de origen falsa",
@@ -1169,9 +1227,58 @@ for comando, (descripcion, variable) in opciones_otras.items():
 
     if comando == "-d":
         # Crear un Scale (deslizador) para el nivel de depuración
-        scale_nivel_depuracion = tk.Scale(contenedor_otras_opciones, showvalue=False, from_=0, to=9, orient=tk.HORIZONTAL, variable=var_nivel_depuracion, command=actualizar_consulta_nmap)
+        scale_nivel_depuracion = tk.Scale(contenedor_otras_opciones, showvalue=False, from_=0, to=9, orient=tk.HORIZONTAL, variable=var_nivel_depuracion, command=si_escaca_movida_d)
         scale_nivel_depuracion.pack(side=tk.LEFT)
         scale_nivel_depuracion.config(state=tk.DISABLED)
+
+        depuracion_valor_intensidad = tk.Label(contenedor_otras_opciones, text="0")
+        depuracion_valor_intensidad.pack(side=tk.LEFT)
+
+
+
+# Función para inicializar el historial de consultas
+def inicializar_historial_consultas():
+    global historial_consultas
+    historial_consultas = ttk.Treeview(contenedor_tabla_historico, columns=("Nº", "consulta", "fecha"), show="headings")
+    historial_consultas.heading("Nº", text="Nº")
+    historial_consultas.heading("consulta", text="Consulta")
+    historial_consultas.heading("fecha", text="Fecha")
+
+    # Configurando el ancho de las columnas
+    historial_consultas.column("Nº", width=20)  # Ancho para la columna "Nº"
+    historial_consultas.column("consulta", width=625) # Ancho para la columna "consulta"
+    historial_consultas.column("fecha", width=100)  # Ancho para la columna "fecha"
+
+    historial_consultas.pack(fill=tk.BOTH, expand=True)
+    historial_consultas.bind("<<TreeviewSelect>>", on_historial_select)
+
+
+
+# Función para manejar la selección en el historial
+def on_historial_select(event):
+    for seleccionado in historial_consultas.selection():
+        item = historial_consultas.item(seleccionado)
+        mostrar_resultado(item['values'][2])  # Asumiendo que guardas el resultado en la tercera posición de values
+
+
+# Sección historial de consultas
+seccion_historial_consultas = tk.LabelFrame(marco_izquierdo, text="Historial de Consultas")
+seccion_historial_consultas.pack(padx=5, pady=5, fill=tk.BOTH, expand=True)
+
+# Contenedor general historial de consultas
+contenedor_general_historico= tk.Frame(seccion_historial_consultas)
+contenedor_general_historico.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+# Contenedor tabla histórico
+contenedor_tabla_historico = tk.Frame(contenedor_general_historico)
+contenedor_tabla_historico.pack(fill=tk.BOTH, expand=True,)
+
+
+
+
+
+inicializar_historial_consultas()
+
 
 
 # Ejecución de la ventana principal
