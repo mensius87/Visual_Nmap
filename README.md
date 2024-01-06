@@ -30,7 +30,7 @@ Permite generar de forma rápida un comando completo de consulta con las princip
 - **📡 Descubrimiento de Red**: Facilita la identificación de dispositivos en la red.
 - **🔍 Técnica de escaneo**: Permite elegir entre diferentes métodos de escaneo.
 - **🛠️ Servicios y versiones**: Identifica servicios y sus versiones en los dispositivos.
-- **🚪 Puertos**: Permite especificar puertos o rangos de puertos para el escaneo.
+- ⚓ Permite especificar puertos o rangos de puertos para el escaneo.
 - **🛡️ Evasión de firewalls e IDS**: Incluye opciones para evadir firewalls y sistemas de detección de intrusiones.
 - **📜 Scripts**: Ejecuta scripts para diferentes propósitos de escaneo y análisis.
 - **⚙️ Otras opciones**: Incluye ajustes adicionales como verbosidad y depuración.
