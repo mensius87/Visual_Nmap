@@ -76,7 +76,7 @@ Para instalar y ejecutar este proyecto en tu máquina local, sigue los siguiente
 
 2. **Asegúrate de tener instalando Nmap y que esté en la raíz de Windows (c:\):**
    ```
-   https://github.com/mensius87/Visual_Nmap
+   c:\Nmap
    ```
 
 3. **Navegar al Directorio:**
