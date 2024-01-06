@@ -7,7 +7,8 @@
 
 <p>Haz clic en el GIF para verlo ampliado y con detalle</p>
 
-![Visual_Nmap3](https://github.com/mensius87/Visual_Nmap/assets/136935764/1c2bd420-e22b-4c56-b0c6-f3819f30f9b6)
+![Visual_Nmap4](https://github.com/mensius87/Visual_Nmap/assets/136935764/15f5acaa-05be-4d34-9b2e-14c14f6a97af)
+
 
 ## :construction: Este proyecto está actualmente en construcción. :construction:
 Puede que algunas funcionalidades no estén completas o sufran cambios.
