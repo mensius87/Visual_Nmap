@@ -548,6 +548,18 @@ def actualizar_consulta_nmap(*args):
     if var_T.get() == 1:
         nivel_intensidad_T = var_nivel_intensidad_T.get()
         consulta += f"{nivel_intensidad_T}"
+    # Añadir la opción --mtu si está seleccionada
+    if var_mtu.get() == 1:
+        valor_mtu = scale_mtu.get()  # Obtener el valor del Scale
+        consulta += f" --mtu {valor_mtu}"
+    if var_D.get() == 1:
+        consulta += " -D"
+    if var_S.get() == 1:
+        consulta += " -S"
+    if var_proxies.get() == 1:
+        consulta += " --proxies"
+    if var_data_length.get() == 1:
+        consulta += " --data-length"
 
     # Añadir la opción de puertos
     puerto_seleccionado = opcion_seleccionada_puertos.get()
@@ -1029,17 +1041,17 @@ opcion_seleccionada_puertos.set(None)  # Establecer una opción por defecto
 # Sección evasión
 var_T = tk.IntVar(value=0)
 
+
 # Diccionario con opciones y descripciones para Evasión
 opciones_evasion = {
-    "-T": "Timing (velocidad del escaneo): nivel sigiloso pero lento (0) y nivel rápido pero ruidoso (5)",
-    "-f": "técnicas de fragmentación en los paquetes de red, con el fin de eludir detectores y firewalls",
-    "--mtu": "Especificar el MTU",
-    "-D": "Usar hosts señuelo",
-    "-S": "Usar una dirección IP de origen falsa",
-    "--proxies": "Utilizar proxies",
-    "--data-length": "Añadir datos aleatorios a los paquetes enviados"
+    "-T": "ajusta la velocidad del escaneo. Un valor bajo es más sigiloso pero lento, un valor alto es más rápido pero más detectable.",
+    "-f": "fragmenta los paquetes de red para intentar evadir detectores y firewalls.",
+    "--mtu": "tamaño personalizado para los paquetes de red y evadir así filtros o redes con restricciones de tamaño de paquete.",
+    "-D": "usa direcciones IP falsas como señuelos junto con tu dirección real para confundir y diluir los registros en los sistemas de seguridad.",
+    "-S": "finge que los paquetes provienen de otra dirección IP, no de tu verdadera dirección IP.",
+    "--proxies": "envía los paquetes a través de uno o más proxies para ocultar el origen real de los escaneos.",
+    "--data-length": "añade datos aleatorios a los paquetes para cambiar su tamaño y apariencia ayudando a evadir algunos tipos de detección."
 }
-
 # Crear Checkbutton y Label para -T
 contenedor_T = tk.Frame(tab_evasion, padx=3, pady=3)
 contenedor_T.pack(fill=tk.X)
@@ -1070,6 +1082,68 @@ check_f = tk.Checkbutton(contenedor_f, text="-f", variable=var_f, command=actual
 check_f.pack(side=tk.LEFT)
 label_f = tk.Label(contenedor_f, text=f"--> {opciones_evasion['-f']}")
 label_f.pack(side=tk.LEFT)
+
+# Crear el contenedor para la opción --mtu
+contenedor_mtu = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_mtu.pack(fill=tk.X)
+
+# Crear Checkbutton y Label para --mtu
+var_mtu = tk.IntVar(value=0)
+check_mtu = tk.Checkbutton(contenedor_mtu, text="--mtu", variable=var_mtu, command=actualizar_consulta_nmap)
+check_mtu.pack(side=tk.LEFT)
+label_mtu = tk.Label(contenedor_mtu, text=f"--> {opciones_evasion['--mtu']}")
+label_mtu.pack(side=tk.LEFT)
+
+# Crear un Scale (deslizador) para el valor de MTU
+def ajustar_mtu(val):
+    """ Ajusta el valor del MTU al múltiplo de 8 más cercano """
+    mtu_valor_intensidad.config(text=str(val))
+    actualizar_consulta_nmap()
+    return int(val) // 8 * 8
+
+
+scale_mtu = tk.Scale(contenedor_mtu, from_=8, to=1500, resolution=8, showvalue=0, orient=tk.HORIZONTAL, command=ajustar_mtu)
+scale_mtu.pack(side=tk.LEFT)
+
+mtu_valor_intensidad = tk.Label(contenedor_mtu, text="0")
+mtu_valor_intensidad.pack(side=tk.LEFT)
+
+
+# Crear Checkbutton y Label para -D (hosts señuelo)
+var_D = tk.IntVar(value=0)
+contenedor_D = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_D.pack(fill=tk.X)
+check_D = tk.Checkbutton(contenedor_D, text="-D", variable=var_D, command=actualizar_consulta_nmap)
+check_D.pack(side=tk.LEFT)
+label_D = tk.Label(contenedor_D, text=f"--> {opciones_evasion['-D']}")
+label_D.pack(side=tk.LEFT)
+
+# Crear Checkbutton y Label para -S (dirección IP de origen falsa)
+var_S = tk.IntVar(value=0)
+contenedor_S = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_S.pack(fill=tk.X)
+check_S = tk.Checkbutton(contenedor_S, text="-S", variable=var_S, command=actualizar_consulta_nmap)
+check_S.pack(side=tk.LEFT)
+label_S = tk.Label(contenedor_S, text=f"--> {opciones_evasion['-S']}")
+label_S.pack(side=tk.LEFT)
+
+# Crear Checkbutton y Label para --proxies (utilizar proxies)
+var_proxies = tk.IntVar(value=0)
+contenedor_proxies = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_proxies.pack(fill=tk.X)
+check_proxies = tk.Checkbutton(contenedor_proxies, text="--proxies", variable=var_proxies, command=actualizar_consulta_nmap)
+check_proxies.pack(side=tk.LEFT)
+label_proxies = tk.Label(contenedor_proxies, text=f"--> {opciones_evasion['--proxies']}")
+label_proxies.pack(side=tk.LEFT)
+
+# Crear Checkbutton y Label para --data-length (añadir datos aleatorios)
+var_data_length = tk.IntVar(value=0)
+contenedor_data_length = tk.Frame(tab_evasion, padx=3, pady=3)
+contenedor_data_length.pack(fill=tk.X)
+check_data_length = tk.Checkbutton(contenedor_data_length, text="--data-length", variable=var_data_length, command=actualizar_consulta_nmap)
+check_data_length.pack(side=tk.LEFT)
+label_data_length = tk.Label(contenedor_data_length, text=f"--> {opciones_evasion['--data-length']}")
+label_data_length.pack(side=tk.LEFT)
 
 
 
