@@ -619,7 +619,8 @@ ventana_principal = tk.Tk()
 ventana_principal.title("Visual Nmap v1.6 - Generador de consultas Nmap")
 ventana_principal.geometry("1500x665")
 ventana_principal.minsize(1600, 650)
-
+icono = tk.PhotoImage(file='images/Visual_Nmap_icono.png')
+ventana_principal.iconphoto(False, icono)
 
 # Crear un objeto menú
 menu_bar = Menu(ventana_principal)
