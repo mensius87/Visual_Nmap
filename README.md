@@ -27,16 +27,16 @@ También es útil para usuarios más experimentados que quieran crear los comand
 
 ## :gear: Características Principales
 Permite generar de forma rápida un comando completo de consulta con las principales opciones de Nmap:
-- **📡 Descubrimiento de Red**: Facilita la identificación de dispositivos en la red.
-- **🔍 Técnica de escaneo**: Permite elegir entre diferentes métodos de escaneo.
-- **🛠️ Servicios y versiones**: Identifica servicios y sus versiones en los dispositivos.
+- **📡 Descubrimiento de Red**: facilita la identificación de dispositivos en la red.
+- **🔍 Técnica de escaneo**: permite elegir entre diferentes métodos de escaneo.
+- **🛠️ Servicios y versiones**: identifica servicios y sus versiones en los dispositivos.
 - ⚓ Permite especificar puertos o rangos de puertos para el escaneo.
-- **🛡️ Evasión de firewalls e IDS**: Incluye opciones para evadir firewalls y sistemas de detección de intrusiones.
-- **📜 Scripts**: Ejecuta scripts para diferentes propósitos de escaneo y análisis.
-- **⚙️ Otras opciones**: Incluye ajustes adicionales como verbosidad y depuración.
-- **📊 Exportar Resultados**: Permite guardar los resultados en diferentes formatos.
-- **📚 Historial de consultas**: Mantiene un registro de todas las consultas realizadas durante la sesión.
-- **✅ Validación de datos**: Asegura la corrección de los datos ingresados en todos los campos.
+- **🛡️ Evasión de firewalls e IDS**: incluye opciones para evadir firewalls y sistemas de detección de intrusiones.
+- **📜 Scripts**: ejecuta scripts para diferentes propósitos de escaneo y análisis.
+- **⚙️ Otras opciones**: incluye ajustes adicionales como verbosidad y depuración.
+- **📊 Exportar Resultados**: permite guardar los resultados en diferentes formatos.
+- **📚 Historial de consultas**: mantiene un registro de todas las consultas realizadas durante la sesión.
+- **✅ Validación de datos**: asegura la corrección de los datos ingresados en todos los campos.
 
   <br><br>
 
