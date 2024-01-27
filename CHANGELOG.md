@@ -1,3 +1,8 @@
+## [1.7] - 27/01/2024
+### Añadido
+- "Añadida opción de descubrimiento -PE" 
+
+
 ## [1.6] - 06/01/2024
 ### Añadido
 - Se añade sección histórico de consultas:

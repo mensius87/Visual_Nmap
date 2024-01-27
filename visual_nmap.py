@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, Menu, messagebox, font
 import os, sys, json, ipaddress, pyperclip, platform, subprocess, re, datetime
 
+
 def mostrar_sobre_el_autor():
     ventana_sobre_autor = tk.Toplevel(pady=10)
     ventana_sobre_autor.title("Sobre el Autor")
@@ -866,8 +867,6 @@ notebook.add(tab_scripts, text="Scripts")
 notebook.add(tab_otras_opciones, text="Otras Opciones")
 
 
-
-
 # Diccionario con opciones y sus descripciones
 opciones_descubrimiento_red = {
     "-sL": "List Scan: enumera direcciones IP sin generar tráfico de red.",
@@ -877,7 +876,8 @@ opciones_descubrimiento_red = {
     "-PA": "TCP ACK Ping Scan: utiliza pings ACK en TCP para identificar hosts en línea.",
     "-PU": "UDP Ping Scan: descubre hosts activos con pings UDP.",
     "-PR": "ARP Ping Scan: localiza hosts activos en redes locales usando ARP.",
-    "-n": "No DNS Resolution: omite la resolución de DNS para acelerar el escaneo."
+    "-n": "No DNS Resolution: omite la resolución de DNS para acelerar el escaneo.",
+    "-PE": "ICMP Echo Ping Scan: utiliza ICMP echo requests para identificar hosts activos."
 }
 
 
