@@ -1,6 +1,13 @@
+## [1.8] - 21/03/2024
+### Cambiado
+- Se corrije errata que duplicaba la opción -sL en la sección tipo de escaneo cuando debería de estar solo en reconocimiento de red.
+- Se corrije errata que mostraba la opción -sF como -Sf.
+
+
+
 ## [1.7] - 27/01/2024
 ### Añadido
-- "Añadida opción de descubrimiento -PE" 
+- Añadida opción de descubrimiento -PE 
 
 
 ## [1.6] - 06/01/2024

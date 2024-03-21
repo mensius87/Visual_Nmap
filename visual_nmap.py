@@ -437,6 +437,7 @@ def validar_puertos_especificos(event):
 
 contador_consultas = 0
 
+
 def ejecutar_escaneo_nmap():
     global contador_consultas  # Referencia a la variable global para el contador de consultas
 
@@ -676,8 +677,6 @@ resultado_nmap = tk.Text(seccion_resultado_consulta, bg="black")
 resultado_nmap.pack(fill=tk.BOTH, expand=True)
 
 
-
-
 def validar_nombre_archivo(event):
     nombre_archivo = entrada_nombre_archivo.get().strip()
     patron = re.compile(r'^[a-zA-Z0-9_.-]+$')  # Expresión regular para validar el nombre del archivo
@@ -691,6 +690,7 @@ def validar_nombre_archivo(event):
 
 
     actualizar_consulta_nmap()  # Actualizar la consulta de Nmap
+
 
 def actualizar_formato_salida():
     # Comprobar si algún check de formato de salida está seleccionado
@@ -906,11 +906,10 @@ opciones_tecnica_escaneo = {
     "-sT": "TCP Connect Scan: comprueba la apertura de puertos completando una conexión TCP",
     "-sA": "TCP ACK Scan: usa paquetes ACK para determinar si los puertos están filtrados o no",
     "-sU": "UDP Scan: examina puertos UDP enviando paquetes UDP para ver si responden",
-    "-Sf": "FIN Scan: envía paquetes FIN a puertos para identificar cuáles no están filtrados",
+    "-sF": "FIN Scan: envía paquetes FIN a puertos para identificar cuáles no están filtrados",
     "-sX": "Xmas Scan: usa paquetes con combinaciones inusuales de flags para analizar puertos",
     "-Sp": "SCTP INIT Scan: inspecciona puertos SCTP mediante mensajes de inicio SCTP",
     "-sN": "Null Scan: envía paquetes sin ningún flag activado para observar reacciones de puertos",
-    "-sL": "List Scan: enumera IPs objetivo sin enviar tráfico activo a los puertos"
 }
 
 
